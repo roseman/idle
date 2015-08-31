@@ -1,0 +1,96 @@
+MONOLITHS
+    1725 EditorWindow.py
+    1615 PyShell.py
+--------
+    3340
+
+CORE TEXT HANDLING CODE
+     233 SearchEngine.py
+     365 UndoDelegator.py
+     104 IdleHistory.py
+     256 ColorDelegator.py
+      25 Delegator.py
+     104 Percolator.py
+     446 MultiCall.py
+     176 WidgetRedirector.py
+--------
+    1709
+
+
+(MOSTLY) NON-GUI CODE
+     758 configHandler.py
+     402 run.py
+     621 rpc.py
+     313 HyperParser.py
+     617 PyParse.py
+      36 RemoteObjectBrowser.py
+     388 RemoteDebugger.py
+     554 IOBinding.py
+--------
+    3689     
+
+
+OLD UI DIALOG CODE
+     146 aboutDialog.py - invoked by EditorWindow
+     108 PathBrowser.py - invoked by EditorWindow
+    1435 configDialog.py - invoked by EditorWindow
+     157 GrepDialog.py - invoked by EditorWindow
+     221 ReplaceDialog.py - invoked by EditorWindow
+      89 SearchDialog.py - invoked by EditorWindow
+     193 SearchDialogBase.py - invoked by EditorWindow
+     490 Debugger.py - invoked by PyShell
+     143 ObjectBrowser.py
+     236 ClassBrowser.py
+     166 configHelpSourceEdit.py - from configDialog
+      98 configSectionNameDialog.py - from configDialog
+     266 keybindingDialog.py - from configDialog
+--------
+    3748    
+
+
+OLD UI UTILITY CODE
+      48 MultiStatusBar.py - used by EditorWindow
+     498 tabbedpages.py - used by configDialog
+      78 dynOptionMenuWidget.py - used by configDialog
+      97 ToolTip.py - not used at all
+     466 TreeWidget.py - used by ClassBrowser, ObjectBrowser, PathBrowser,
+                         Stackviewer, PyShell,
+      86 textView.py - used by about dialog
+     236 macosxSupport.py - used by EditorWindow, Debugger, PyShell,
+                     configDialog, plus some extensions
+      90 WindowList.py - used by Debugger, EditorWindow, macosxSupport
+     140 ScrolledList.py - used by Debugger
+     160 CallTipWindow.py - used by CallTip extension
+     415 AutoCompleteWindow.py - used by AutoComplete extension
+     152 StackViewer.py
+     144 OutputWindow.py
+     129 FileList.py
+      95 Bindings.py (define menus)
+--------
+    2834
+    
+
+NEW UI CODE
+     134 tkextras.py
+    2204 uipreferences.py
+     130 querydialog.py
+
+
+DEFAULT CONFIGURATION FILES
+
+      99 config-extensions.def
+      64 config-highlight.def
+     214 config-keys.def
+      76 config-main.def
+
+EXTENSIONS
+
+     233 AutoComplete.py
+     104 AutoExpand.py
+     175 CallTips.py
+     179 CodeContext.py
+     195 FormatParagraph.py
+     178 ParenMatch.py
+      33 RstripExtension.py
+     204 ScriptBinding.py
+      51 ZoomHeight.py
