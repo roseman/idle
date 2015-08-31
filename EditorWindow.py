@@ -147,7 +147,8 @@ class EditorWindow(object):
         self.recent_files_path = os.path.join(idleConf.GetUserCfgDir(),
                 'recent-files.lst')
         self.text_frame = text_frame = Frame(top)
-        self.vbar = vbar = ttk.Scrollbar(text_frame, name='vbar')
+        cls = ttk.Scrollbar if uifactory.using_ttk() else Scrollbar
+        self.vbar = vbar = cls(text_frame, name='vbar')
         self.width = idleConf.GetOption('main', 'EditorWindow',
                                         'width', type='int')
         text_options = {
@@ -408,7 +409,6 @@ class EditorWindow(object):
         return "break"
 
     def set_status_bar(self):
-        sep = ttk.Separator(self.top, orient=HORIZONTAL)
         self.status_bar = self.MultiStatusBar(self.top)
         if sys.platform == "darwin":
             # Insert some padding to avoid obscuring some of the statusbar
@@ -418,16 +418,19 @@ class EditorWindow(object):
         self.status_bar.set_label('column', 'Col: ?', side=RIGHT, width=7)
         self.status_bar.set_label('line', 'Ln: ?', side=RIGHT, width=7)
         self.status_bar.pack(side=BOTTOM, fill=X)
-        sep.pack(side=BOTTOM, fill=X)
+        if uifactory.using_ttk():
+            sep = ttk.Separator(self.top, orient=HORIZONTAL)
+            sep.pack(side=BOTTOM, fill=X)
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
         self.text.event_add("<<set-line-and-column>>",
                             "<KeyRelease>", "<ButtonRelease>")
         self.text.after_idle(self.set_line_and_column)
-        from idlelib.debugpanel import DebugPanel
-        d = DebugPanel(self.top, flist=self.flist)
-        d.pack(side=BOTTOM, fill=X)
-        sep = ttk.Separator(self.top, orient=HORIZONTAL)
-        sep.pack(side=BOTTOM, fill=X)
+        if uifactory.using_ttk():
+            from idlelib.debugpanel import DebugPanel
+            d = DebugPanel(self.top, flist=self.flist)
+            d.pack(side=BOTTOM, fill=X)
+            sep = ttk.Separator(self.top, orient=HORIZONTAL)
+            sep.pack(side=BOTTOM, fill=X)
 
     def set_line_and_column(self, event=None):
         line, column = self.text.index(INSERT).split('.')

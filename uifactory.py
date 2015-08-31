@@ -45,7 +45,7 @@ def askinteger(prompt=None, title=None, parent=None,
 
 
 def using_ttk():
-    return _inst.using_ttk()
+    return _inst.using_ttk
 
 
 def other_windows_open():
@@ -67,6 +67,7 @@ class _UIFactory(object):
         if not avoid_ttk and TkVersion >= 8.5:
             try:
                 from tkinter import ttk
+                b = ttk.Button(root)
                 self.using_ttk = True
             except:
                 pass
@@ -116,9 +117,6 @@ class _UIFactory(object):
             del self.windows[key]
             if not self.other_windows_open() and self.allclosed_callback:
                 self.allclosed_callback()
-
-    def using_ttk(self):
-        return self.using_ttk
 
     def other_windows_open(self):
         return len(self.windows) > 0
