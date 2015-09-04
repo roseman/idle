@@ -1,3 +1,49 @@
+Having fiddled around the edges long enough, I'd like to start tackling some of the main pieces of IDLE, which will require a substantial restructuring. Luckily, it's only about 4000-5000 lines of code that should be affected.
+
+Outline of my tentative plans below. If anyone sees any red flags, speak up!
+
+
+Goals: 
+1. split off tangential features from mega-modules (EditorWindow and PyShell)
+2. better encapsulation; reduce internal knowledge about other modules
+3. reduce assumptions affecting how UI assembled (e.g. toplevels)
+4. reduce redundancies
+5. make it easier for new IDLE contributors to navigate code base
+
+Non-goals (for now anyway):
+1. internal API stability
+2. supporting people using pieces of idlelib
+3. keeping third party IDLE extensions working
+4. keeping existing tests working
+
+A special note on the last point. Adapting (relevant) existing tests, and filling in holes in testing needs to happen sooner than later. But because of how things will be broken up (hence destroying API stability) likely most of the tests will be broken to start with.
+
+The other question of course is how this monstrosity of changes can be realistically condensed into a "patch", but I'll leave thinking about that for now.
+
+
+Work Items:
+
+1. Define a "IdleComponent" class (effectively a frame or toplevel). Examples would be editor windows, shell, prefs dialog, etc. Base class provides an API for various responsibilities, notifications etc. that can be handled in subclasses if needed.
+
+2. Replace WindowList, FileList, PyShellFileList with a smarter "hub" that ties all the pieces of the application together (see previous point). Also serves as a way to broadcast changes application wide, manage overall application state, etc.
+
+3. Create a "IdleMainWindow" which would bundle together a tabbed editor, status bar, debug panel, shell area via paned windows etc. Keep this as simple as possible (delegating to other components) so that experimenting with how pieces are put together is easier.
+
+4. Improve module level documentation to help people navigating code base. Clarify role of module within application. Specifically highlight modules that are present for Tk 8.4 compatibility only, so they can be later removed.
+
+5. EditorWindow - move all the help stuff into a separate module
+
+6. EditorWindow - trim responsibilities so it handles "just" editor stuff. For example, things about launching dialogs, creating menu bars, etc. should get moved elsewhere.  Should only respond to editor-related menu commands, while more 'application level' menu commands get done elsewhere.
+
+7. Abstract/centralize all the menu management, key bindings etc. as required, delegating minimum amount needed to IdleComponent subclasses. Will likely center around the notion of commands (which may be equivalent to the virtual events used now), but components shouldn't have to mess with menus (would enable putting toolbars etc. in later if desired)
+
+8. PyShell - split ModifiedInterpreter, Pseudo*File into other modules, strip PyShell class to core functionality like with EditorWindow (e.g. move debugger commands elsewhere). This module is a prime candidate to have everything moved elsewhere, leaving it basically as a main application startup script.
+
+9. Make it so that we always have a Python shell/interpreter (like we do now) and a debugger object (or wrapper) available, even if they're not onscreen. Ideally separate debugger at least from a UI, so that UI can be created as needed and attach to underlying object. 
+
+
+
+
 MONOLITHS
     1725 EditorWindow.py
     1615 PyShell.py
