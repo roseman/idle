@@ -54,3 +54,15 @@ def init(root_, allow_ttk=True):
 
 _initialized = False
 
+
+class Spinbox(tkinter.Spinbox):
+    """
+    A ttk::spinbox was added in Tk 8.5.9; use it if present, otherwise
+    use a spinbox. Note the two have different options and methods, so this
+    only works for the basics.
+    """
+    def __init__(self, master=None, cnf={}, **kw):
+        hasTtkSpinbox = master and master.tk.call('info', 'commands',
+                                                  'ttk::spinbox')
+        base = 'ttk::spinbox' if hasTtkSpinbox else 'spinbox'
+        tkinter.Widget.__init__(self, master, base, cnf, kw)

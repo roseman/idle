@@ -7,18 +7,6 @@ import sys
 import platform
 
 
-class IdleSpinbox(Spinbox):
-    """
-    A ttk::spinbox was added in Tk 8.5.9; use it if present, otherwise
-    use a spinbox. Note the two have different options and methods, so this
-    only works for the basics.
-    """
-    def __init__(self, master=None, cnf={}, **kw):
-        hasTtkSpinbox = master and master.tk.call('info', 'commands',
-                                                  'ttk::spinbox')
-        base = 'ttk::spinbox' if hasTtkSpinbox else 'spinbox'
-        Widget.__init__(self, master, base, cnf, kw)
-
 
 def need_sizegrip():
     """

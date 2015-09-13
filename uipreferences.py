@@ -49,8 +49,8 @@ import tkinter.filedialog as filedialog
 import tkinter.font as tkFont
 from idlelib.configHandler import idleConf
 from idlelib import macosxSupport
-from idlelib import tkextras
 from idlelib import querydialog
+from idlelib import ui
 
 
 
@@ -174,7 +174,7 @@ class PreferencesDialog(Toplevel):
         self.outerframe.grid_rowconfigure(0, weight=1)
         tabs = self.tabs = ttk.Notebook(self.outerframe)
         tabs.grid(column=0, row=0, sticky='NWES')
-        if tkextras.windowingsystem() != 'aqua':
+        if ui.windowing_system != 'aqua':
             tabs.grid_configure(pady=[10,10])
         self.add_panes(tabs)
         buttons = ttk.Frame(self.outerframe, padding=[0,0,10,10])
@@ -326,7 +326,7 @@ class FontsPane(PreferencesPane):
         lbl_indent = ttk.Label(self, text='Indent:')
         info_indent = ttk.Label(self, justify=LEFT,
                                 text='Python Standard: 4 Spaces!')
-        self.indent = tkextras.IdleSpinbox(self, textvariable=self.indent_v,
+        self.indent = ui.Spinbox(self, textvariable=self.indent_v,
                                            from_=2, to=16, width=3)
         lbl_indent.grid(column=0, row=3, sticky='SE')
         self.indent.grid(column=1, row=3, sticky='SW', padx=[5,0])
@@ -389,7 +389,7 @@ class ThemesPane(PreferencesPane):
         self.load_element_data()
         self.sample = Text(
                 self, relief=SOLID, borderwidth=1, wrap=NONE,
-                font='TkFixedFont', cursor=tkextras.clickable_cursor(),
+                font='TkFixedFont', cursor=ui.clickable_cursor,
                 width=21, height=12, takefocus=FALSE, highlightthickness=0)
         self.sample.bind('<Double-Button-1>', lambda e: 'break')
         self.sample.bind('<B1-Motion>', lambda e: 'break')
@@ -420,7 +420,7 @@ class ThemesPane(PreferencesPane):
         # color wells to view/change foreground and background element colors
         self.foregroundWell = Frame(self, width=20, height=20, borderwidth=3,
                                     relief='ridge', background='black',
-                                    cursor=tkextras.clickable_cursor())
+                                    cursor=ui.clickable_cursor)
         self.foregroundWell.bind('<1>',
                         lambda ev: self.change_color(foreground=True))
         self.foregroundWell.grid(column=4, row=5, pady=5, sticky='w', padx=6)
@@ -428,7 +428,7 @@ class ThemesPane(PreferencesPane):
                                                  sticky='e', padx=[20,0])
         self.backgroundWell = Frame(self, width=20, height=20, borderwidth=3,
                                     relief='ridge', background='white',
-                                    cursor=tkextras.clickable_cursor())
+                                    cursor=ui.clickable_cursor)
         self.backgroundWell.bind('<1>',
                         lambda ev: self.change_color(foreground=False))
         self.backgroundWell.grid(column=4, row=6, pady=5, sticky='w', padx=6)
