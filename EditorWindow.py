@@ -13,7 +13,6 @@ import traceback
 import webbrowser
 
 from idlelib.MultiCall import MultiCallCreator
-from idlelib import WindowList
 from idlelib import SearchDialog
 from idlelib import GrepDialog
 from idlelib import ReplaceDialog
@@ -25,6 +24,8 @@ from idlelib import ui
 from idlelib import uipreferences
 from idlelib import querydialog
 from idlelib import help
+from idlelib.component import Component
+from idlelib.container import Container
 
 
 # The default tab setting for a Text widget, in average-width characters.
@@ -44,7 +45,7 @@ def _sphinx_version():
     return release
 
 
-class EditorWindow(object):
+class EditorWindow(Component):
     from idlelib.Percolator import Percolator
     from idlelib.ColorDelegator import ColorDelegator
     from idlelib.UndoDelegator import UndoDelegator
@@ -56,6 +57,8 @@ class EditorWindow(object):
     help_url = None
 
     def __init__(self, flist=None, filename=None, key=None, root=None):
+        Component.__init__(self, flist)
+        self.type = 'editor'
         if EditorWindow.help_url is None:
             dochome =  os.path.join(sys.base_prefix, 'Doc', 'index.html')
             if sys.platform.count('linux'):
@@ -92,7 +95,15 @@ class EditorWindow(object):
         except AttributeError:
             sys.ps1 = '>>> '
         self.menubar = Menu(root)
-        self.top = top = WindowList.ListedToplevel(root, menu=self.menubar)
+        # Note: It's important that this be stored in self.top, as
+        #       Component relies on this to communicate with the
+        #       Container. This restriction won't be necessary in the
+        #       future, as we will soon be passing in a Container for
+        #       the Component to use, rather than having the Component
+        #       create one.
+        self.top = top = Container(flist)
+        self.top.component = self
+        top.set_menubar(self.menubar)
         if flist:
             self.tkinter_vars = flist.vars
         else:
@@ -100,7 +111,7 @@ class EditorWindow(object):
                                     # values: Tkinter variable instances
         self.recent_files_path = os.path.join(idleConf.GetUserCfgDir(),
                 'recent-files.lst')
-        self.text_frame = text_frame = Frame(top)
+        self.text_frame = text_frame = Frame(top.w)
         cls = ttk.Scrollbar if ui.using_ttk else Scrollbar
         self.vbar = vbar = cls(text_frame, name='vbar')
         self.width = idleConf.GetOption('main', 'EditorWindow',
@@ -119,13 +130,10 @@ class EditorWindow(object):
             # older tk versions.
             text_options['tabstyle'] = 'wordprocessor'
         self.text = text = MultiCallCreator(Text)(text_frame, **text_options)
-        self.top.focused_widget = self.text
 
         self.createmenubar()
         self.apply_bindings()
 
-        self.top.protocol("WM_DELETE_WINDOW", self.close)
-        self.top.bind("<<close-window>>", self.close_event)
         if macosxSupport.isAquaTk():
             # Command-W on editorwindows doesn't work without this.
             text.bind('<<close-window>>', self.close_event)
@@ -239,6 +247,15 @@ class EditorWindow(object):
         self.good_load = False
         self.set_indentation_params(False)
         self.color = None # initialized below in self.ResetColorizer
+        menu = self.menudict.get('windows')
+        if menu:
+            end = menu.index("end")
+            if end is None:
+                end = -1
+            if end >= 0:
+                menu.add_separator()
+                end = end + 1
+            self.wmenu_end = end
         if filename:
             if os.path.exists(filename) and not os.path.isdir(filename):
                 if io.loadfile(filename):
@@ -253,16 +270,6 @@ class EditorWindow(object):
         self.saved_change_hook()
         self.update_recent_files_list()
         self.load_extensions()
-        menu = self.menudict.get('windows')
-        if menu:
-            end = menu.index("end")
-            if end is None:
-                end = -1
-            if end >= 0:
-                menu.add_separator()
-                end = end + 1
-            self.wmenu_end = end
-            WindowList.register_callback(self.postwindowsmenu)
 
         # Some abstractions so IDLE extensions are cross-IDE
         self.askyesno = tkMessageBox.askyesno
@@ -313,6 +320,10 @@ class EditorWindow(object):
         # Replace non-BMP char with diamond questionmark.
         return re.sub('[\U00010000-\U0010FFFF]', '\ufffd', filename)
 
+    def wakeup(self):
+        Component.wakeup(self)
+        self.text.focus_set()
+
     def new_callback(self, event):
         dirname, basename = self.io.defaultfilename()
         self.flist.new(dirname)
@@ -362,8 +373,8 @@ class EditorWindow(object):
         return "break"
 
     def set_status_bar(self):
-        self.status_bar = self.MultiStatusBar(self.top)
-        sep = Frame(self.top, height=1, borderwidth=1, background='grey75')
+        self.status_bar = self.MultiStatusBar(self.top.w)
+        sep = Frame(self.top.w, height=1, borderwidth=1, background='grey75')
         if sys.platform == "darwin":
             # Insert some padding to avoid obscuring some of the statusbar
             # by the resize widget.
@@ -421,7 +432,7 @@ class EditorWindow(object):
             end = -1
         if end > self.wmenu_end:
             menu.delete(self.wmenu_end+1, end)
-        WindowList.add_windows_to_menu(menu)
+        self.flist.add_windows_to_menu(menu)
 
     rmenu = None
 
@@ -488,22 +499,22 @@ class EditorWindow(object):
             return 'normal'
 
     def about_dialog(self, event=None):
-        aboutDialog.show(self.top)
+        aboutDialog.show(self.top.top)
 
     def config_dialog(self, event=None):
         if ui.using_ttk:
-            uipreferences.show(self.top, self.flist)
+            uipreferences.show(self.top.top, self.flist)
         else:
-            configDialog.ConfigDialog(self.top,'Settings')
+            configDialog.ConfigDialog(self.top.top,'Settings')
         
     def config_extensions_dialog(self, event=None):
-        configDialog.ConfigExtensionsDialog(self.top)
+        configDialog.ConfigExtensionsDialog(self.top.top)
 
     def help_dialog(self, event=None):
         if self.root:
             parent = self.root
         else:
-            parent = self.top
+            parent = self.top.top
         help.show(parent)
 
     def python_docs(self, event=None):
@@ -698,7 +709,6 @@ class EditorWindow(object):
         if self.flist:
             self.flist.filename_changed_edit(self)
         self.saved_change_hook()
-        self.top.update_windowlist_registry(self)
         self.ResetColorizer()
 
     def configuration_will_change(self):
@@ -712,6 +722,12 @@ class EditorWindow(object):
         self.set_notabs_indentwidth()
         self.ApplyKeybindings()
         self.reset_help_menu_entries()
+
+    def filenames_changed(self):
+        "Callback when one or more filenames changed; rebuild windows menu"
+        # NOTE: This replaces the callbacks formerly invoked by WindowList.
+        if self.menudict.get('windows'):
+            self.postwindowsmenu()
 
     def _addcolorizer(self):
         if self.color:
@@ -921,8 +937,7 @@ class EditorWindow(object):
         if not self.get_saved():
             title = "*%s*" % title
             icon = "*%s" % icon
-        self.top.wm_title(title)
-        self.top.wm_iconname(icon)
+        self.top.set_title(title, short_title=icon)
 
     def get_saved(self):
         return self.undo.get_saved()
@@ -971,22 +986,13 @@ class EditorWindow(object):
         text = self.text
         return int(float(text.index(mark)))
 
-    def get_geometry(self):
-        "Return (width, height, x, y)"
-        geom = self.top.wm_geometry()
-        m = re.match(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)", geom)
-        return list(map(int, m.groups()))
-
     def close_event(self, event):
-        self.close()
+        self.top._close()       # container in charge of closing now
 
     def maybesave(self):
         if self.io:
             if not self.get_saved():
-                if self.top.state()!='normal':
-                    self.top.deiconify()
-                self.top.lower()
-                self.top.lift()
+                self.top.move_to_front(self)
             return self.io.maybesave()
 
     def close(self):
@@ -998,7 +1004,6 @@ class EditorWindow(object):
     def _close(self):
         if self.io.filename:
             self.update_recent_files_list(new_file=self.io.filename)
-        WindowList.unregister_callback(self.postwindowsmenu)
         self.unload_extensions()
         self.io.close()
         self.io = None
@@ -1010,7 +1015,7 @@ class EditorWindow(object):
         self.tkinter_vars = None
         self.per.close()
         self.per = None
-        self.top.destroy()
+        # NOTE: container invoked this, so no need for us to destroy container
         if self.close_hook:
             # unless override: unregister from flist, terminate if last window
             self.close_hook()

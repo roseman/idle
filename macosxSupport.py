@@ -126,7 +126,6 @@ def overrideRootMenu(root, flist):
     # menu.
     from tkinter import Menu
     from idlelib import Bindings
-    from idlelib import WindowList
 
     closeItem = Bindings.menudefs[0][1][-2]
 
@@ -156,8 +155,8 @@ def overrideRootMenu(root, flist):
 
         if end > 0:
             menu.delete(0, end)
-        WindowList.add_windows_to_menu(menu)
-    WindowList.register_callback(postwindowsmenu)
+        if flist:
+            flist.add_windows_to_menu(menu)
 
     def about_dialog(event=None):
         from idlelib import aboutDialog

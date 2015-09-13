@@ -1,9 +1,10 @@
 import os
 import bdb
 from tkinter import *
-from idlelib.WindowList import ListedToplevel
 from idlelib.ScrolledList import ScrolledList
 from idlelib import macosxSupport
+from idlelib.component import Component
+from idlelib.container import Container
 
 
 class Idb(bdb.Bdb):
@@ -47,11 +48,12 @@ class Idb(bdb.Bdb):
         return message
 
 
-class Debugger:
+class Debugger(Component):
 
     vstack = vsource = vlocals = vglobals = None
 
     def __init__(self, pyshell, idb=None):
+        Component.__init__(self, pyshell.flist)
         if idb is None:
             idb = Idb(self)
         self.pyshell = pyshell
@@ -69,7 +71,7 @@ class Debugger:
 
     def close(self, event=None):
         if self.interacting:
-            self.top.bell()
+            self.top.top.bell()
             return
         if self.stackviewer:
             self.stackviewer.close(); self.stackviewer = None
@@ -77,20 +79,19 @@ class Debugger:
         # (Causes a harmless extra cycle through close_debugger() if user
         # toggled debugger from pyshell Debug menu)
         self.pyshell.close_debugger()
-        # Now close the debugger control window....
-        self.top.destroy()
+        # NOTE: container will invoke this, so we don't need to destroy it
 
     def make_gui(self):
         pyshell = self.pyshell
         self.flist = pyshell.flist
         self.root = root = pyshell.root
-        self.top = top = ListedToplevel(root)
-        self.top.wm_title("Debug Control")
-        self.top.wm_iconname("Debug")
-        top.wm_protocol("WM_DELETE_WINDOW", self.close)
-        self.top.bind("<Escape>", self.close)
+        # NOTE: later we will be passed in container, rather than creating it
+        self.top = top = Container(self.flist)
+        self.top.component = self
+        self.top.set_title("Debug Control", "Debug")
+        self.top.top.bind("<Escape>", self.close)
         #
-        self.bframe = bframe = Frame(top)
+        self.bframe = bframe = Frame(top.w)
         self.bframe.pack(anchor="w")
         self.buttons = bl = []
         #
@@ -113,39 +114,39 @@ class Debugger:
         self.cframe.pack(side="left")
         #
         if not self.vstack:
-            self.__class__.vstack = BooleanVar(top)
+            self.__class__.vstack = BooleanVar(top.w)
             self.vstack.set(1)
         self.bstack = Checkbutton(cframe,
             text="Stack", command=self.show_stack, variable=self.vstack)
         self.bstack.grid(row=0, column=0)
         if not self.vsource:
-            self.__class__.vsource = BooleanVar(top)
+            self.__class__.vsource = BooleanVar(top.w)
         self.bsource = Checkbutton(cframe,
             text="Source", command=self.show_source, variable=self.vsource)
         self.bsource.grid(row=0, column=1)
         if not self.vlocals:
-            self.__class__.vlocals = BooleanVar(top)
+            self.__class__.vlocals = BooleanVar(top.w)
             self.vlocals.set(1)
         self.blocals = Checkbutton(cframe,
             text="Locals", command=self.show_locals, variable=self.vlocals)
         self.blocals.grid(row=1, column=0)
         if not self.vglobals:
-            self.__class__.vglobals = BooleanVar(top)
+            self.__class__.vglobals = BooleanVar(top.w)
         self.bglobals = Checkbutton(cframe,
             text="Globals", command=self.show_globals, variable=self.vglobals)
         self.bglobals.grid(row=1, column=1)
         #
-        self.status = Label(top, anchor="w")
+        self.status = Label(top.w, anchor="w")
         self.status.pack(anchor="w")
-        self.error = Label(top, anchor="w")
+        self.error = Label(top.w, anchor="w")
         self.error.pack(anchor="w", fill="x")
         self.errorbg = self.error.cget("background")
         #
-        self.fstack = Frame(top, height=1)
+        self.fstack = Frame(top.w, height=1)
         self.fstack.pack(expand=1, fill="both")
-        self.flocals = Frame(top)
+        self.flocals = Frame(top.w)
         self.flocals.pack(expand=1, fill="both")
-        self.fglobals = Frame(top, height=1)
+        self.fglobals = Frame(top.w, height=1)
         self.fglobals.pack(expand=1, fill="both")
         #
         if self.vstack.get():
@@ -190,7 +191,7 @@ class Debugger:
         for b in self.buttons:
             b.configure(state="normal")
         #
-        self.top.wakeup()
+        self.top.move_to_front(self)
         self.root.mainloop()
         #
         for b in self.buttons:

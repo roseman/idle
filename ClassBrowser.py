@@ -15,14 +15,15 @@ import sys
 import pyclbr
 
 from idlelib import PyShell
-from idlelib.WindowList import ListedToplevel
 from idlelib.TreeWidget import TreeNode, TreeItem, ScrolledCanvas
 from idlelib.configHandler import idleConf
+from idlelib.component import Component
+from idlelib.container import Container
 
 file_open = None  # Method...Item and Class...Item use this.
 # Normally PyShell.flist.open, but there is no PyShell.flist for htest.
 
-class ClassBrowser:
+class ClassBrowser(Component):
 
     def __init__(self, flist, name, path, _htest=False):
         # XXX This API should change, if the file doesn't end in ".py"
@@ -30,6 +31,7 @@ class ClassBrowser:
         """
         _htest - bool, change box when location running htest.
         """
+        Component.__init__(self, flist)
         global file_open
         if not _htest:
             file_open = PyShell.flist.open
@@ -38,8 +40,8 @@ class ClassBrowser:
         self._htest = _htest
         self.init(flist)
 
-    def close(self, event=None):
-        self.top.destroy()
+    def close(self):
+        # NOTE: container will invoke this, so we don't need to destroy it
         self.node.destroy()
 
     def init(self, flist):
@@ -47,18 +49,19 @@ class ClassBrowser:
         # reset pyclbr
         pyclbr._modules.clear()
         # create top
-        self.top = top = ListedToplevel(flist.root)
-        top.protocol("WM_DELETE_WINDOW", self.close)
-        top.bind("<Escape>", self.close)
+        # NOTE: later we will be passed in container, rather than creating it
+        self.top = top = Container(flist)
+        self.top.component = self
+        top.top.bind("<Escape>", self.close)
         if self._htest: # place dialog below parent if running htest
-            top.geometry("+%d+%d" %
+            top.top.geometry("+%d+%d" %
                 (flist.root.winfo_rootx(), flist.root.winfo_rooty() + 200))
         self.settitle()
-        top.focus_set()
+        top.top.focus_set()
         # create scrolled canvas
         theme = idleConf.GetOption('main','Theme','name')
         background = idleConf.GetHighlight(theme, 'normal')['background']
-        sc = ScrolledCanvas(top, bg=background, highlightthickness=0, takefocus=1)
+        sc = ScrolledCanvas(top.w, bg=background, highlightthickness=0, takefocus=1)
         sc.frame.pack(expand=1, fill="both")
         item = self.rootnode()
         self.node = node = TreeNode(sc.canvas, None, item)
@@ -66,8 +69,7 @@ class ClassBrowser:
         node.expand()
 
     def settitle(self):
-        self.top.wm_title("Class Browser - " + self.name)
-        self.top.wm_iconname("Class Browser")
+        self.top.set_title("Class Browser - " + self.name, "Class Browser")
 
     def rootnode(self):
         return ModuleBrowserTreeItem(self.file)

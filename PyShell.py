@@ -325,7 +325,7 @@ class PyShellFileList(FileList):
 
     def open_shell(self, event=None):
         if self.pyshell:
-            self.pyshell.top.wakeup()
+            self.pyshell.wakeup()
         else:
             self.pyshell = PyShell(self)
             if self.pyshell:

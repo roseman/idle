@@ -12,6 +12,7 @@ class FileList:
         self.root = root
         self.dict = {}
         self.inversedict = {}
+        self.containers = {}
         self.vars = {} # For EditorWindow.getrawvar (shared Tcl variables)
 
     def open(self, filename, action=None):
@@ -27,7 +28,7 @@ class FileList:
         key = os.path.normcase(filename)
         if key in self.dict:
             edit = self.dict[key]
-            edit.top.wakeup()
+            edit.wakeup()
             return edit
         if action:
             # Don't create window, perform 'action', e.g. open in same window
@@ -107,6 +108,42 @@ class FileList:
                 del self.dict[key]
             except KeyError:
                 pass
+        self.root.after_idle(self.filenames_changed)
+
+    # note: replacement for WindowList.add
+    def add_container(self, container):
+        container.w.after_idle(self.filenames_changed)
+        self.containers[str(container)] = container
+        
+    # note: replacement for WindowList.delete
+    def delete_container(self, container):
+        try:
+            del self.containers[str(container)]
+        except KeyError:
+            # Sometimes, destroy() is called twice
+            pass
+        self.filenames_changed()
+        
+    # note: replaces callbacks from WindowList; whereas those needed to be
+    # explicitly registered for and unregistered from, here we just send
+    # the notice to every component
+    def filenames_changed(self):
+        "Callback when one or more filenames changed"
+        for w in self.inversedict.keys():
+            w.filenames_changed()
+            
+    def add_windows_to_menu(self,  menu):
+        list = []
+        for key in self.containers:
+            container = self.containers[key]
+            try:
+                title = container.get_title()
+            except TclError:
+                continue
+            list.append((title, key, container))
+        list.sort()
+        for title, key, container in list:
+            menu.add_command(label=title, command=container.component.wakeup)
 
     def configuration_will_change(self):
         "Callback from configuration dialog before settings are applied."
