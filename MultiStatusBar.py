@@ -1,16 +1,20 @@
 from tkinter import *
+from tkinter import ttk
+from idlelib import ui
 
 class MultiStatusBar(Frame):
 
     def __init__(self, master=None, **kw):
         if master is None:
             master = Tk()
-        Frame.__init__(self, master, **kw)
+        cls = ttk.Frame if ui.using_ttk else Frame
+        cls.__init__(self, master, **kw)
         self.labels = {}
 
     def set_label(self, name, text='', side=LEFT, width=0):
         if name not in self.labels:
-            label = Label(self, borderwidth=0, anchor=W)
+            cls = ttk.Label if ui.using_ttk else Label
+            label = cls(self, borderwidth=0, anchor=W)
             label.pack(side=side, pady=0, padx=4)
             self.labels[name] = label
         else:

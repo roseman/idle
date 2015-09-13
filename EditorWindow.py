@@ -7,6 +7,7 @@ import re
 import string
 import sys
 from tkinter import *
+from tkinter import ttk
 import tkinter.simpledialog as tkSimpleDialog
 import tkinter.messagebox as tkMessageBox
 import traceback
@@ -21,6 +22,8 @@ from idlelib import PyParse
 from idlelib.configHandler import idleConf
 from idlelib import aboutDialog, textView, configDialog
 from idlelib import macosxSupport
+from idlelib import ui
+
 
 # The default tab setting for a Text widget, in average-width characters.
 TK_TABWIDTH_DEFAULT = 8
@@ -145,7 +148,8 @@ class EditorWindow(object):
         self.recent_files_path = os.path.join(idleConf.GetUserCfgDir(),
                 'recent-files.lst')
         self.text_frame = text_frame = Frame(top)
-        self.vbar = vbar = Scrollbar(text_frame, name='vbar')
+        cls = ttk.Scrollbar if ui.using_ttk else Scrollbar
+        self.vbar = vbar = cls(text_frame, name='vbar')
         self.width = idleConf.GetOption('main', 'EditorWindow',
                                         'width', type='int')
         text_options = {
