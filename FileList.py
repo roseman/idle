@@ -40,6 +40,11 @@ class FileList:
                 edit._close()
                 return None
 
+    def register_editor_window(self, win, key=None):
+        self.inversedict[win] = key
+        if key:
+            self.dict[key] = win
+
     def gotofileline(self, filename, lineno=None):
         edit = self.open(filename)
         if edit is not None and lineno is not None:
@@ -54,6 +59,10 @@ class FileList:
             if reply == "cancel":
                 break
         return "break"
+
+    def keep_running(self):
+        "Application should stay running while any editors are open"
+        return len(self.inversedict) > 0
 
     def unregister_maybe_terminate(self, edit):
         try:
@@ -98,6 +107,29 @@ class FileList:
                 del self.dict[key]
             except KeyError:
                 pass
+
+    def configuration_will_change(self):
+        "Callback from configuration dialog before settings are applied."
+        for w in self.inversedict.keys():
+            w.configuration_will_change()
+
+    def configuration_changed(self):
+        "Callback from configuration dialog after settings are applied."
+        for w in self.inversedict.keys():
+            w.configuration_changed()
+
+    def apply_breakpoints(self, applycmd):
+        "Callback from debugger asking each editor to apply it's breakpoints"
+        for w in self.inversedict.keys():
+            try:    # only PyShellEditorWindow will support this callback
+                w.apply_breakpoints(applycmd)
+            except Exception:
+                pass
+
+    def rebuild_recent_files_menu(self, rf_list):
+        "Called when all editors need to rebuild their recent files menus"
+        for w in self.inversedict.keys():
+            w.rebuild_recent_files_menu(rf_list)
 
     def canonize(self, filename):
         if not os.path.isabs(filename):

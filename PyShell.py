@@ -282,6 +282,15 @@ class PyShellEditorWindow(EditorWindow):
         linenumber_list = self.ranges_to_linenumbers(ranges)
         self.breakpoints = linenumber_list
 
+    def apply_breakpoints(self, applycmd):
+        "Callback from debugger asking each editor to apply it's breakpoints"
+        filename = self.io.filename
+        try:
+            for lineno in self.breakpoints:
+                applycmd(filename, lineno)
+        except AttributeError:
+            pass
+
     def ranges_to_linenumbers(self, ranges):
         lines = []
         for index in range(0, len(ranges), 2):
@@ -1609,7 +1618,7 @@ def main():
         if tkversionwarning:
             shell.interp.runcommand("print('%s')" % tkversionwarning)
 
-    while flist.inversedict:  # keep IDLE running while files are open.
+    while flist.keep_running():  # keep IDLE running while files are open.
         root.mainloop()
     root.destroy()
     capture_warnings(False)

@@ -164,13 +164,9 @@ def overrideRootMenu(root, flist):
 
     def config_dialog(event=None):
         from idlelib import configDialog
-
-        # Ensure that the root object has an instance_dict attribute,
-        # mirrors code in EditorWindow (although that sets the attribute
-        # on an EditorWindow instance that is then passed as the first
-        # argument to ConfigDialog)
-        root.instance_dict = flist.inversedict
-        root.instance_dict = flist.inversedict
+        # Ensure that the root object has an flist so config can communicate
+        # with all the editor windows to inform them of changes
+        root.flist = flist
         configDialog.ConfigDialog(root, 'Settings')
 
     def help_dialog(event=None):

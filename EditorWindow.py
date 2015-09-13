@@ -138,13 +138,9 @@ class EditorWindow(object):
         self.top = top = WindowList.ListedToplevel(root, menu=self.menubar)
         if flist:
             self.tkinter_vars = flist.vars
-            #self.top.instance_dict makes flist.inversedict available to
-            #configDialog.py so it can access all EditorWindow instances
-            self.top.instance_dict = flist.inversedict
         else:
             self.tkinter_vars = {}  # keys: Tkinter event names
                                     # values: Tkinter variable instances
-            self.top.instance_dict = {}
         self.recent_files_path = os.path.join(idleConf.GetUserCfgDir(),
                 'recent-files.lst')
         self.text_frame = text_frame = Frame(top)
@@ -222,9 +218,7 @@ class EditorWindow(object):
         text.bind("<<beginning-of-line>>", self.home_callback)
 
         if flist:
-            flist.inversedict[self] = key
-            if key:
-                flist.dict[key] = self
+            flist.register_editor_window(self, key)
             text.bind("<<open-new-window>>", self.new_callback)
             text.bind("<<close-all-windows>>", self.flist.close_all_callback)
             text.bind("<<open-class-browser>>", self.open_class_browser)
@@ -747,6 +741,18 @@ class EditorWindow(object):
         self.top.update_windowlist_registry(self)
         self.ResetColorizer()
 
+    def configuration_will_change(self):
+        "Callback from configuration dialog before settings are applied."
+        self.RemoveKeybindings()
+
+    def configuration_changed(self):
+        "Callback from configuration dialog after settings are applied."
+        self.ResetColorizer()
+        self.ResetFont()
+        self.set_notabs_indentwidth()
+        self.ApplyKeybindings()
+        self.reset_help_menu_entries()
+
     def _addcolorizer(self):
         if self.color:
             return
@@ -920,17 +926,20 @@ class EditorWindow(object):
                         % str(err),
                     parent=self.text)
         # for each edit window instance, construct the recent files menu
-        for instance in self.top.instance_dict:
-            menu = instance.recent_files_menu
-            menu.delete(0, END)  # clear, and rebuild:
-            for i, file_name in enumerate(rf_list):
-                file_name = file_name.rstrip()  # zap \n
-                # make unicode string to display non-ASCII chars correctly
-                ufile_name = self._filename_to_unicode(file_name)
-                callback = instance.__recent_file_callback(file_name)
-                menu.add_command(label=ulchars[i] + " " + ufile_name,
-                                 command=callback,
-                                 underline=0)
+        if self.flist:
+            self.flist.rebuild_recent_files_menu(rf_list)
+
+    def rebuild_recent_files_menu(self, rf_list):
+        ulchars = "1234567890ABCDEFGHIJK"   # note: duplicated from above
+        menu = self.recent_files_menu
+        menu.delete(0, END)  # clear, and rebuild:
+        for i, file_name in enumerate(rf_list):
+            file_name = file_name.rstrip()  # zap \n
+            # make unicode string to display non-ASCII chars correctly
+            ufile_name = self._filename_to_unicode(file_name)
+            callback = self.__recent_file_callback(file_name)
+            menu.add_command(label=ulchars[i] + " " + ufile_name,
+                             command=callback, underline=0)
 
     def __recent_file_callback(self, file_name):
         def open_recent_file(fn_closure=file_name):

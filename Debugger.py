@@ -310,13 +310,7 @@ class Debugger:
 
     def load_breakpoints(self):
         "Load PyShellEditorWindow breakpoints into subprocess debugger"
-        for editwin in self.pyshell.flist.inversedict:
-            filename = editwin.io.filename
-            try:
-                for lineno in editwin.breakpoints:
-                    self.set_breakpoint_here(filename, lineno)
-            except AttributeError:
-                continue
+        self.flist.apply_breakpoints(self.set_breakpoint_here)
 
 class StackViewer(ScrolledList):
 

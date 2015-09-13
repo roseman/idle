@@ -30,8 +30,15 @@ class ConfigDialog(Toplevel):
         """
         Toplevel.__init__(self, parent)
         self.parent = parent
-        if _htest:
-            parent.instance_dict = {}
+        # Hold onto the list of files the parent belongs to, as the parent 
+        # may go away if we're not modal. The file list may not be present 
+        # e.g. if testing where we won't be passed an editor window; to 
+        # prevent an API change we'll try to extract it here, rather than
+        # asking it to be passed to us.
+        try:
+            self.flist = parent.flist
+        except AttributeError:
+            self.flist = None
         self.wm_withdraw()
 
         self.configure(borderwidth=5)
@@ -1140,19 +1147,13 @@ class ConfigDialog(Toplevel):
     def DeactivateCurrentConfig(self):
         #Before a config is saved, some cleanup of current
         #config must be done - remove the previous keybindings
-        winInstances = self.parent.instance_dict.keys()
-        for instance in winInstances:
-            instance.RemoveKeybindings()
+        if self.flist:
+            self.flist.configuration_will_change()
 
     def ActivateConfigChanges(self):
         "Dynamically apply configuration changes"
-        winInstances = self.parent.instance_dict.keys()
-        for instance in winInstances:
-            instance.ResetColorizer()
-            instance.ResetFont()
-            instance.set_notabs_indentwidth()
-            instance.ApplyKeybindings()
-            instance.reset_help_menu_entries()
+        if self.flist:
+            self.flist.configuration_changed()
 
     def Cancel(self):
         self.destroy()
