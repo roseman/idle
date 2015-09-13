@@ -24,6 +24,7 @@ from idlelib import macosxSupport
 from idlelib import ui
 from idlelib import uipreferences
 from idlelib import querydialog
+from idlelib import help
 
 
 # The default tab setting for a Text widget, in average-width characters.
@@ -41,51 +42,6 @@ def _sphinx_version():
     elif level != 'final':
         release += '%s%s' % (level[0], serial)
     return release
-
-
-class HelpDialog(object):
-
-    def __init__(self):
-        self.parent = None      # parent of help window
-        self.dlg = None         # the help window iteself
-
-    def display(self, parent, near=None):
-        """ Display the help dialog.
-
-            parent - parent widget for the help window
-
-            near - a Toplevel widget (e.g. EditorWindow or PyShell)
-                   to use as a reference for placing the help window
-        """
-        if self.dlg is None:
-            self.show_dialog(parent)
-        if near:
-            self.nearwindow(near)
-
-    def show_dialog(self, parent):
-        self.parent = parent
-        fn=os.path.join(os.path.abspath(os.path.dirname(__file__)),'help.txt')
-        self.dlg = dlg = textView.view_file(parent,'Help',fn, modal=False)
-        dlg.bind('<Destroy>', self.destroy, '+')
-
-    def nearwindow(self, near):
-        # Place the help dialog near the window specified by parent.
-        # Note - this may not reposition the window in Metacity
-        #  if "/apps/metacity/general/disable_workarounds" is enabled
-        dlg = self.dlg
-        geom = (near.winfo_rootx() + 10, near.winfo_rooty() + 10)
-        dlg.withdraw()
-        dlg.geometry("=+%d+%d" % geom)
-        dlg.deiconify()
-        dlg.lift()
-
-    def destroy(self, ev=None):
-        self.dlg = None
-        self.parent = None
-
-helpDialog = HelpDialog()  # singleton instance
-def _help_dialog(parent):  # wrapper for htest
-    helpDialog.show_dialog(parent)
 
 
 class EditorWindow(object):
@@ -548,7 +504,7 @@ class EditorWindow(object):
             parent = self.root
         else:
             parent = self.top
-        helpDialog.display(parent, near=self.top)
+        help.show(parent)
 
     def python_docs(self, event=None):
         if sys.platform[:3] == 'win':
