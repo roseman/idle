@@ -5,6 +5,7 @@
 import os
 from sys import version
 from tkinter import *
+from idlelib import ui
 
 
 dlg = None
@@ -38,7 +39,7 @@ class AboutDialog(Toplevel):
                         parent.winfo_rooty()+(30 if not _htest else 100)))
         self.bg = "#bbbbbb"
         self.fg = "#000000"
-        self.link_cursor = 'hand2'  # TODO use ui.clickable_cursor
+        self.link_cursor = ui.clickable_cursor
         self.CreateWidgets()
         self.resizable(height=FALSE, width=FALSE)
         self.title(title)
