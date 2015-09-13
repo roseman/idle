@@ -160,7 +160,7 @@ def overrideRootMenu(root, flist):
 
     def about_dialog(event=None):
         from idlelib import aboutDialog
-        aboutDialog.AboutDialog(root, 'About IDLE')
+        aboutDialog.show(root)
 
     def config_dialog(event=None):
         from idlelib import configDialog

@@ -538,7 +538,7 @@ class EditorWindow(object):
             return 'normal'
 
     def about_dialog(self, event=None):
-        aboutDialog.AboutDialog(self.top,'About IDLE')
+        aboutDialog.show(self.top)
 
     def config_dialog(self, event=None):
         configDialog.ConfigDialog(self.top,'Settings')
