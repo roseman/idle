@@ -21,6 +21,8 @@ from idlelib.configSectionNameDialog import GetCfgSectionNameDialog
 from idlelib.configHelpSourceEdit import GetHelpSourceDialog
 from idlelib.tabbedpages import TabbedPageSet
 from idlelib import macosxSupport
+
+
 class ConfigDialog(Toplevel):
 
     def __init__(self, parent, title='', _htest=False, _utest=False):
@@ -67,8 +69,6 @@ class ConfigDialog(Toplevel):
         self.ResetChangedItems() #load initial values in changed items dict
         self.CreateWidgets()
         self.resizable(height=FALSE, width=FALSE)
-        self.transient(parent)
-        self.grab_set()
         self.protocol("WM_DELETE_WINDOW", self.Cancel)
         self.tabPages.focus_set()
         #key bindings for this dialog
@@ -77,10 +77,14 @@ class ConfigDialog(Toplevel):
         #self.bind('<F1>', self.Help) #context help
         self.LoadConfigs()
         self.AttachVarCallbacks() #avoid callbacks during LoadConfigs
+        self.parent = None # after start, can't guarantee parent still exists
 
         if not _utest:
-            self.wm_deiconify()
-            self.wait_window()
+            self.activate()
+
+    def activate(self):
+        self.wm_deiconify()
+        self.lift()
 
     def CreateWidgets(self):
         self.tabPages = TabbedPageSet(self,
