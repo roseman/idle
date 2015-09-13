@@ -1,7 +1,6 @@
 import os
 from tkinter import *
 import tkinter.messagebox as tkMessageBox
-from idlelib.uifactory import other_windows_open, set_allclosed_callback
 
 
 class FileList:
@@ -14,9 +13,6 @@ class FileList:
         self.dict = {}
         self.inversedict = {}
         self.vars = {} # For EditorWindow.getrawvar (shared Tcl variables)
-        import idlelib.uifactory
-        idlelib.uifactory.initialize(root, avoid_ttk=False)
-        set_allclosed_callback(self.auxilliary_windows_closed)
 
     def open(self, filename, action=None):
         assert filename
@@ -59,16 +55,6 @@ class FileList:
                 break
         return "break"
 
-    def auxilliary_windows_closed(self):
-        "Callback from UIFactory when the last auxilliary window is closed"
-        if not self.inversedict:
-            self.root.quit()
-        
-    def register_editor_window(self, win, key=None):
-        self.inversedict[win] = key
-        if key:
-            self.dict[key] = win
-        
     def unregister_maybe_terminate(self, edit):
         try:
             key = self.inversedict[edit]
@@ -78,7 +64,7 @@ class FileList:
         if key:
             del self.dict[key]
         del self.inversedict[edit]
-        if not self.inversedict and not other_windows_open():
+        if not self.inversedict:
             self.root.quit()
 
     def filename_changed_edit(self, edit):
@@ -122,16 +108,6 @@ class FileList:
             else:
                 filename = os.path.join(pwd, filename)
         return os.path.normpath(filename)
-
-    def configuration_will_change(self):
-        "Callback from configuration dialog before settings are applied."
-        for w in self.inversedict.keys():
-            w.configuration_will_change()
-        
-    def configuration_changed(self):
-        "Callback from configuration dialog after settings are applied."
-        for w in self.inversedict.keys():
-            w.configuration_changed()
 
 
 def _test():

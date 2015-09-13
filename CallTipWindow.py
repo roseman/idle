@@ -72,7 +72,6 @@ class CallTip:
                            background="#ffffe0", relief=SOLID, borderwidth=1,
                            font = self.widget['font'])
         self.label.pack()
-        tw.lift()  # needed to work around bug in Tk 8.5.18+ (issue #24570)
 
         self.checkhideid = self.widget.bind(CHECKHIDE_VIRTUAL_EVENT_NAME,
                                             self.checkhide_event)

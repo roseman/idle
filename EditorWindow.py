@@ -9,7 +9,6 @@ import sys
 from tkinter import *
 import tkinter.simpledialog as tkSimpleDialog
 import tkinter.messagebox as tkMessageBox
-from tkinter import ttk
 import traceback
 import webbrowser
 
@@ -22,7 +21,6 @@ from idlelib import PyParse
 from idlelib.configHandler import idleConf
 from idlelib import aboutDialog, textView, configDialog
 from idlelib import macosxSupport
-from idlelib import uifactory
 
 # The default tab setting for a Text widget, in average-width characters.
 TK_TABWIDTH_DEFAULT = 8
@@ -147,15 +145,13 @@ class EditorWindow(object):
         self.recent_files_path = os.path.join(idleConf.GetUserCfgDir(),
                 'recent-files.lst')
         self.text_frame = text_frame = Frame(top)
-        cls = ttk.Scrollbar if uifactory.using_ttk() else Scrollbar
-        self.vbar = vbar = cls(text_frame, name='vbar')
+        self.vbar = vbar = Scrollbar(text_frame, name='vbar')
         self.width = idleConf.GetOption('main', 'EditorWindow',
                                         'width', type='int')
         text_options = {
                 'name': 'text',
                 'padx': 5,
                 'wrap': 'none',
-                'highlightthickness': 0,
                 'width': self.width,
                 'height': idleConf.GetOption('main', 'EditorWindow',
                                              'height', type='int')}
@@ -175,13 +171,13 @@ class EditorWindow(object):
         if macosxSupport.isAquaTk():
             # Command-W on editorwindows doesn't work without this.
             text.bind('<<close-window>>', self.close_event)
-            # Some OS X systems have only one mouse button, so use
-            # control-click for popup context menus there. For two
-            # buttons, AquaTk defines <2> as the right button, not <3>.
+            # Some OS X systems have only one mouse button,
+            # so use control-click for pulldown menus there.
+            #  (Note, AquaTk defines <2> as the right button if
+            #   present and the Tk Text widget already binds <2>.)
             text.bind("<Control-Button-1>",self.right_menu_event)
-            text.bind("<2>", self.right_menu_event)
         else:
-            # Elsewhere, use right-click for popup menus.
+            # Elsewhere, use right-click for pulldown menus.
             text.bind("<3>",self.right_menu_event)
         text.bind("<<cut>>", self.cut)
         text.bind("<<copy>>", self.copy)
@@ -221,7 +217,9 @@ class EditorWindow(object):
         text.bind("<<beginning-of-line>>", self.home_callback)
 
         if flist:
-            flist.register_editor_window(self, key)
+            flist.inversedict[self] = key
+            if key:
+                flist.dict[key] = self
             text.bind("<<open-new-window>>", self.new_callback)
             text.bind("<<close-all-windows>>", self.flist.close_all_callback)
             text.bind("<<open-class-browser>>", self.open_class_browser)
@@ -312,7 +310,7 @@ class EditorWindow(object):
 
         # Some abstractions so IDLE extensions are cross-IDE
         self.askyesno = tkMessageBox.askyesno
-        self.askinteger = uifactory.askinteger
+        self.askinteger = tkSimpleDialog.askinteger
         self.showerror = tkMessageBox.showerror
 
         self._highlight_workaround()  # Fix selection tags on Windows
@@ -413,24 +411,14 @@ class EditorWindow(object):
         if sys.platform == "darwin":
             # Insert some padding to avoid obscuring some of the statusbar
             # by the resize widget.
-            #self.status_bar.set_label('_padding1', '    ', side=RIGHT)
-            pass
-        self.status_bar.set_label('column', 'Col: ?', side=RIGHT, width=7)
-        self.status_bar.set_label('line', 'Ln: ?', side=RIGHT, width=7)
+            self.status_bar.set_label('_padding1', '    ', side=RIGHT)
+        self.status_bar.set_label('column', 'Col: ?', side=RIGHT)
+        self.status_bar.set_label('line', 'Ln: ?', side=RIGHT)
         self.status_bar.pack(side=BOTTOM, fill=X)
-        if uifactory.using_ttk():
-            sep = ttk.Separator(self.top, orient=HORIZONTAL)
-            sep.pack(side=BOTTOM, fill=X)
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
         self.text.event_add("<<set-line-and-column>>",
                             "<KeyRelease>", "<ButtonRelease>")
         self.text.after_idle(self.set_line_and_column)
-        if uifactory.using_ttk():
-            from idlelib.debugpanel import DebugPanel
-            d = DebugPanel(self.top, flist=self.flist)
-            d.pack(side=BOTTOM, fill=X)
-            sep = ttk.Separator(self.top, orient=HORIZONTAL)
-            sep.pack(side=BOTTOM, fill=X)
 
     def set_line_and_column(self, event=None):
         line, column = self.text.index(INSERT).split('.')
@@ -543,13 +531,10 @@ class EditorWindow(object):
             return 'normal'
 
     def about_dialog(self, event=None):
-        from idlelib.uifactory import open_about
-        open_about()
+        aboutDialog.AboutDialog(self.top,'About IDLE')
 
     def config_dialog(self, event=None):
-        from idlelib.uifactory import open_preferences
-        open_preferences(self.top)
-         
+        configDialog.ConfigDialog(self.top,'Settings')
     def config_extensions_dialog(self, event=None):
         configDialog.ConfigExtensionsDialog(self.top)
 
@@ -647,8 +632,8 @@ class EditorWindow(object):
 
     def goto_line_event(self, event):
         text = self.text
-        lineno = uifactory.askinteger(title="Goto",
-                prompt="Go to line number:", parent=text)
+        lineno = tkSimpleDialog.askinteger("Goto",
+                "Go to line number:",parent=text)
         if lineno is None:
             return "break"
         if lineno <= 0:
@@ -665,9 +650,9 @@ class EditorWindow(object):
             name = ""
         else:
             name = name.strip()
-        name = uifactory.askstring(title="Module",
-                 prompt = "Enter the name of a Python module\n"
-                          "to search on sys.path and open:",
+        name = tkSimpleDialog.askstring("Module",
+                 "Enter the name of a Python module\n"
+                 "to search on sys.path and open:",
                  parent=self.text, initialvalue=name)
         if name:
             name = name.strip()
@@ -772,19 +757,6 @@ class EditorWindow(object):
         self.color.removecolors()
         self.per.removefilter(self.color)
         self.color = None
-
-
-    def configuration_will_change(self):
-        "Callback from configuration dialog before settings are applied."
-        self.RemoveKeybindings()
-        
-    def configuration_changed(self):
-        "Callback from configuration dialog after settings are applied."
-        self.ResetColorizer()
-        self.ResetFont()
-        self.set_notabs_indentwidth()
-        self.ApplyKeybindings()
-        self.reset_help_menu_entries()
 
     def ResetColorizer(self):
         "Update the color theme"
@@ -1522,10 +1494,9 @@ class EditorWindow(object):
 ##         return "break"
 
     def change_indentwidth_event(self, event):
-        new = uifactory.askinteger(
-                  title="Indent width",
-                  prompt="New indent width (2-16)\n"
-                         "(Always use 8 when using tabs)",
+        new = self.askinteger(
+                  "Indent width",
+                  "New indent width (2-16)\n(Always use 8 when using tabs)",
                   parent=self.text,
                   initialvalue=self.indentwidth,
                   minvalue=2,
@@ -1583,9 +1554,9 @@ class EditorWindow(object):
         text.undo_block_stop()
 
     def _asktabwidth(self):
-        return uifactory.askinteger(
-            title="Tab width",
-            prompt="Columns per tab? (2-16)",
+        return self.askinteger(
+            "Tab width",
+            "Columns per tab? (2-16)",
             parent=self.text,
             initialvalue=self.indentwidth,
             minvalue=2,

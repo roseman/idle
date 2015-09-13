@@ -124,6 +124,7 @@ class PyShellEditorWindow(EditorWindow):
         self.text.bind("<<set-breakpoint-here>>", self.set_breakpoint_here)
         self.text.bind("<<clear-breakpoint-here>>", self.clear_breakpoint_here)
         self.text.bind("<<open-python-shell>>", self.flist.open_shell)
+
         self.breakpointPath = os.path.join(idleConf.GetUserCfgDir(),
                                            'breakpoints.lst')
         # whenever a file is changed, restore breakpoints
@@ -1039,7 +1040,7 @@ class PyShell(OutputWindow):
                     "and will be removed in a later version. See Help/IDLE Help\n" +
                     "for details.\n\n")
             sys.displayhook = rpc.displayhook
-            
+
         self.write("Python %s on %s\n%s\n%s" %
                    (sys.version, sys.platform, self.COPYRIGHT, nosub))
         self.text.focus_force()
@@ -1546,14 +1547,6 @@ def main():
     root.withdraw()
     flist = PyShellFileList(root)
     macosxSupport.setupApp(root, flist)
-    
-    if macosxSupport.isAquaTk():
-        # There are some screwed up <2> class bindings for text
-        # widgets defined in Tk which we need to do away with.
-        # See issue #24801.
-        root.unbind_class('Text', '<B2>')
-        root.unbind_class('Text', '<B2-Motion>')
-        root.unbind_class('Text', '<<PasteSelection>>')
 
     if enable_edit:
         if not (cmd or script):

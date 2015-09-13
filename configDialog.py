@@ -21,29 +21,17 @@ from idlelib.configSectionNameDialog import GetCfgSectionNameDialog
 from idlelib.configHelpSourceEdit import GetHelpSourceDialog
 from idlelib.tabbedpages import TabbedPageSet
 from idlelib import macosxSupport
-
-
 class ConfigDialog(Toplevel):
 
-    def __init__(self, parent, title='', _htest=False, _utest=False,
-                 must_be_modal=True, destroy_callback=None):
+    def __init__(self, parent, title='', _htest=False, _utest=False):
         """
         _htest - bool, change box location when running htest
         _utest - bool, don't wait_window when running unittest
         """
         Toplevel.__init__(self, parent)
         self.parent = parent
-        self.destroy_callback = destroy_callback
-        # Hold onto the list of files the parent belongs to, as the parent 
-        # may go away if we're not modal. The file list may not be present 
-        # e.g. if testing where we won't be passed an editor window; to 
-        # prevent an API change we'll try to extract it here, rather than
-        # asking it to be passed to us.
-        try:
-            self.flist = parent.flist
-        except AttributeError:
-            self.flist = None
-
+        if _htest:
+            parent.instance_dict = {}
         self.wm_withdraw()
 
         self.configure(borderwidth=5)
@@ -72,9 +60,8 @@ class ConfigDialog(Toplevel):
         self.ResetChangedItems() #load initial values in changed items dict
         self.CreateWidgets()
         self.resizable(height=FALSE, width=FALSE)
-        if must_be_modal:
-            self.transient(parent)
-            self.grab_set()
+        self.transient(parent)
+        self.grab_set()
         self.protocol("WM_DELETE_WINDOW", self.Cancel)
         self.tabPages.focus_set()
         #key bindings for this dialog
@@ -83,17 +70,10 @@ class ConfigDialog(Toplevel):
         #self.bind('<F1>', self.Help) #context help
         self.LoadConfigs()
         self.AttachVarCallbacks() #avoid callbacks during LoadConfigs
-        self.parent = None # after start, can't guarantee parent still exists
 
         if not _utest:
-            self.activate()
-            
-        if _utest or must_be_modal:
+            self.wm_deiconify()
             self.wait_window()
-
-    def activate(self):
-        self.wm_deiconify()
-        self.lift()
 
     def CreateWidgets(self):
         self.tabPages = TabbedPageSet(self,
@@ -1160,17 +1140,21 @@ class ConfigDialog(Toplevel):
     def DeactivateCurrentConfig(self):
         #Before a config is saved, some cleanup of current
         #config must be done - remove the previous keybindings
-        if self.flist:
-            self.flist.configuration_will_change()
+        winInstances = self.parent.instance_dict.keys()
+        for instance in winInstances:
+            instance.RemoveKeybindings()
 
     def ActivateConfigChanges(self):
         "Dynamically apply configuration changes"
-        if self.flist:
-            self.flist.configuration_changed()
+        winInstances = self.parent.instance_dict.keys()
+        for instance in winInstances:
+            instance.ResetColorizer()
+            instance.ResetFont()
+            instance.set_notabs_indentwidth()
+            instance.ApplyKeybindings()
+            instance.reset_help_menu_entries()
 
     def Cancel(self):
-        if self.destroy_callback:
-            self.destroy_callback()
         self.destroy()
 
     def Ok(self):

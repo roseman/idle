@@ -97,9 +97,3 @@ check-module=<Alt-Key-x>
 enable=True
 [ZoomHeight_cfgBindings]
 zoom-height=<Alt-Key-2>
-
-[TabExtension]
-enable=0
-enable_shell = 0
-[TabExtension_cfgBindings]
-tab-new=<Control-Key-t>
