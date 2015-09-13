@@ -18,8 +18,7 @@ class PathBrowser(ClassBrowser):
 
     def settitle(self):
         "Set window titles."
-        self.top.wm_title("Path Browser")
-        self.top.wm_iconname("Path Browser")
+        self.top.set_title("Path Browser")
 
     def rootnode(self):
         return PathBrowserTreeItem()
