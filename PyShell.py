@@ -34,6 +34,7 @@ from idlelib import rpc
 from idlelib import Debugger
 from idlelib import RemoteDebugger
 from idlelib import macosxSupport
+from idlelib import ui
 
 HOST = '127.0.0.1' # python execution server on localhost loopback
 PORT = 0  # someday pass in host, port for remote debug capability
@@ -1530,6 +1531,7 @@ def main():
     enable_shell = enable_shell or not enable_edit
     # start editor and/or shell windows:
     root = Tk(className="Idle")
+    ui.init(root)
 
     # set application icon
     icondir = os.path.join(os.path.dirname(__file__), 'Icons')
