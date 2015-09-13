@@ -7,8 +7,7 @@ import tkinter.filedialog as tkFileDialog
 import tkinter.messagebox as tkMessageBox
 import re
 from tkinter import *
-from tkinter.simpledialog import askstring
-
+from idlelib import querydialog
 from idlelib.configHandler import idleConf
 
 from codecs import BOM_UTF8
@@ -296,13 +295,13 @@ class IOBinding:
         try:
             # Wait for the editor window to appear
             self.editwin.text.update()
-            enc = askstring(
-                "Specify file encoding",
-                "The file's encoding is invalid for Python 3.x.\n"
+            enc = querydialog.askstring(
+                title="Specify file encoding",
+                prompt="The file's encoding is invalid for Python 3.x.\n"
                 "IDLE will convert it to UTF-8.\n"
                 "What is the current encoding of the file?",
                 initialvalue = locale_encoding,
-                parent = self.editwin.text)
+                parent = self.editwin.text, use_ttk=ui.using_ttk)
 
             if enc:
                 chars = str(bytes, enc)

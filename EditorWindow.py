@@ -8,7 +8,6 @@ import string
 import sys
 from tkinter import *
 from tkinter import ttk
-import tkinter.simpledialog as tkSimpleDialog
 import tkinter.messagebox as tkMessageBox
 import traceback
 import webbrowser
@@ -24,6 +23,7 @@ from idlelib import aboutDialog, textView, configDialog
 from idlelib import macosxSupport
 from idlelib import ui
 from idlelib import uipreferences
+from idlelib import querydialog
 
 
 # The default tab setting for a Text widget, in average-width characters.
@@ -310,7 +310,6 @@ class EditorWindow(object):
 
         # Some abstractions so IDLE extensions are cross-IDE
         self.askyesno = tkMessageBox.askyesno
-        self.askinteger = tkSimpleDialog.askinteger
         self.showerror = tkMessageBox.showerror
 
         self._highlight_workaround()  # Fix selection tags on Windows
@@ -638,8 +637,8 @@ class EditorWindow(object):
 
     def goto_line_event(self, event):
         text = self.text
-        lineno = tkSimpleDialog.askinteger("Goto",
-                "Go to line number:",parent=text)
+        lineno = querydialog.askinteger(title="Goto",
+                prompt="Go to line number:", parent=text, use_ttk=ui.using_ttk)
         if lineno is None:
             return "break"
         if lineno <= 0:
@@ -656,10 +655,10 @@ class EditorWindow(object):
             name = ""
         else:
             name = name.strip()
-        name = tkSimpleDialog.askstring("Module",
-                 "Enter the name of a Python module\n"
+        name = querydialog.askstring(title="Module",
+                 prompt="Enter the name of a Python module\n"
                  "to search on sys.path and open:",
-                 parent=self.text, initialvalue=name)
+                 parent=self.text, initialvalue=name, use_ttk=ui.using_ttk)
         if name:
             name = name.strip()
         if not name:
@@ -1515,13 +1514,15 @@ class EditorWindow(object):
 ##         return "break"
 
     def change_indentwidth_event(self, event):
-        new = self.askinteger(
-                  "Indent width",
-                  "New indent width (2-16)\n(Always use 8 when using tabs)",
+        new = querydialog.askinteger(
+                  title="Indent width",
+                  prompt="New indent width (2-16)\n"
+                         "(Always use 8 when using tabs)",
                   parent=self.text,
                   initialvalue=self.indentwidth,
-                  minvalue=2,
-                  maxvalue=16)
+                  min=2,
+                  max=16,
+                  use_ttk=ui.using_ttk)
         if new and new != self.indentwidth and not self.usetabs:
             self.indentwidth = new
         return "break"
@@ -1575,13 +1576,14 @@ class EditorWindow(object):
         text.undo_block_stop()
 
     def _asktabwidth(self):
-        return self.askinteger(
-            "Tab width",
-            "Columns per tab? (2-16)",
+        return querydialog.askinteger(
+            title="Tab width",
+            prompt="Columns per tab? (2-16)",
             parent=self.text,
             initialvalue=self.indentwidth,
-            minvalue=2,
-            maxvalue=16)
+            min=2,
+            max=16,
+            use_ttk=ui.using_ttk)
 
     # Guess indentwidth from text content.
     # Return guessed indentwidth.  This should not be believed unless
