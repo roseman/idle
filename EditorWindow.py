@@ -23,6 +23,7 @@ from idlelib.configHandler import idleConf
 from idlelib import aboutDialog, textView, configDialog
 from idlelib import macosxSupport
 from idlelib import ui
+from idlelib import uipreferences
 
 
 # The default tab setting for a Text widget, in average-width characters.
@@ -535,7 +536,11 @@ class EditorWindow(object):
         aboutDialog.show(self.top)
 
     def config_dialog(self, event=None):
-        configDialog.ConfigDialog(self.top,'Settings')
+        if ui.using_ttk:
+            uipreferences.show(self.top, self.flist)
+        else:
+            configDialog.ConfigDialog(self.top,'Settings')
+        
     def config_extensions_dialog(self, event=None):
         configDialog.ConfigExtensionsDialog(self.top)
 

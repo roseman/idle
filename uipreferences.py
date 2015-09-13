@@ -50,8 +50,24 @@ import tkinter.font as tkFont
 from idlelib.configHandler import idleConf
 from idlelib import macosxSupport
 from idlelib import tkextras
-from idlelib import uifactory
+from idlelib import querydialog
 
+
+
+dlg = None
+
+def show(parent, flist):
+    "Main routine; show dialog window, creating or raising as necessary."
+    global dlg
+    if dlg is None:
+        dlg = PreferencesDialog(parent, flist, destroy_callback=_destroyed)
+    dlg.lift()
+    dlg.focus_set()
+
+def _destroyed():
+    global dlg
+    dlg = None
+    
 
 class PreferencesChanger(object):
     """
@@ -510,7 +526,7 @@ class ThemesPane(PreferencesPane):
                 raise ValueError('Cannot be longer than 30 characters')
             if s in self.all_theme_names():
                 raise ValueError('Name already used')
-        new_theme = uifactory.askstring(parent=self, prompt=prompt,
+        new_theme = querydialog.askstring(parent=self, prompt=prompt,
                     title='Create New Theme', initialvalue=new_theme,
                     oklabel='Create', validatecmd=validate_theme)
         if new_theme is not None:
@@ -788,7 +804,7 @@ class KeysPane(PreferencesPane):
                 raise ValueError('Cannot be longer than 30 characters')
             if s in self.all_keyset_names():
                 raise ValueError('Name already used')
-        new_keyset = uifactory.askstring(parent=self, prompt=prompt,
+        new_keyset = querydialog.askstring(parent=self, prompt=prompt,
                     title='Create New Key Set', initialvalue=new_keyset,
                     oklabel='Create', validatecmd=validate_keyset)
         if new_keyset is not None:
@@ -1185,7 +1201,6 @@ class ExtensionsPane(PreferencesPane):
 
 if __name__ == '__main__':
     root = Tk()
-    uifactory.initialize(root)
     root.wm_withdraw()
     dlg = PreferencesDialog(parent=root, destroy_callback=sys.exit)
     root.mainloop()

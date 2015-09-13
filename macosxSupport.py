@@ -5,6 +5,7 @@ import sys
 import tkinter
 from os import path
 import warnings
+from idlelib import ui
 
 def runningAsOSXApp():
     warnings.warn("runningAsOSXApp() is deprecated, use isAquaTk()",
@@ -163,11 +164,16 @@ def overrideRootMenu(root, flist):
         aboutDialog.show(root)
 
     def config_dialog(event=None):
-        from idlelib import configDialog
-        # Ensure that the root object has an flist so config can communicate
-        # with all the editor windows to inform them of changes
-        root.flist = flist
-        configDialog.ConfigDialog(root, 'Settings')
+        
+        if ui.using_ttk:
+            from idlelib import uipreferences
+            uipreferences.show(root, flist)
+        else:
+            from idlelib import configDialog
+            # Ensure that the root object has an flist so config can
+            # communicte with all the editor windows to inform them of changes
+            root.flist = flist
+            configDialog.ConfigDialog(root, 'Settings')
 
     def help_dialog(event=None):
         from idlelib import textView
