@@ -16,9 +16,8 @@ class PathBrowser(ClassBrowser):
         self._htest = _htest
         self.init(flist)
 
-    def settitle(self):
-        "Set window titles."
-        self.top.set_title("Path Browser")
+    def short_title(self):
+        return 'Path Browser'
 
     def rootnode(self):
         return PathBrowserTreeItem()

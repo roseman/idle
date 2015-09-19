@@ -30,8 +30,6 @@ from idlelib.component import Component
 # The default tab setting for a Text widget, in average-width characters.
 TK_TABWIDTH_DEFAULT = 8
 
-_py_version = ' (%s)' % platform.python_version()
-
 def _sphinx_version():
     "Format sys.version_info to produce the Sphinx version string used to install the chm docs"
     major, minor, micro, level, serial = sys.version_info
@@ -909,21 +907,7 @@ class EditorWindow(Component):
         return open_recent_file
 
     def saved_change_hook(self):
-        short = self.short_title()
-        long = self.long_title()
-        if short and long:
-            title = short + " - " + long + _py_version
-        elif short:
-            title = short
-        elif long:
-            title = long
-        else:
-            title = "Untitled"
-        icon = short or long or title
-        if not self.get_saved():
-            title = "*%s*" % title
-            icon = "*%s" % icon
-        self.top.set_title(title, short_title=icon)
+        self.top.title_changed()
 
     def get_saved(self):
         return self.undo.get_saved()

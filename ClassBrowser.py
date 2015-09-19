@@ -55,7 +55,6 @@ class ClassBrowser(Component):
         if self._htest: # place dialog below parent if running htest
             top.top.geometry("+%d+%d" %
                 (flist.root.winfo_rootx(), flist.root.winfo_rooty() + 200))
-        self.settitle()
         top.top.focus_set()
         # create scrolled canvas
         theme = idleConf.GetOption('main','Theme','name')
@@ -67,8 +66,8 @@ class ClassBrowser(Component):
         node.update()
         node.expand()
 
-    def settitle(self):
-        self.top.set_title("Class Browser - " + self.name, "Class Browser")
+    def short_title(self):
+        return 'Class Browser'
 
     def rootnode(self):
         return ModuleBrowserTreeItem(self.file)

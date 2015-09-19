@@ -87,7 +87,6 @@ class Debugger(Component):
         # NOTE: later we will be passed in container, rather than creating it
         self.top = top = self.flist.new_container()
         self.top.component = self
-        self.top.set_title("Debug Control", "Debug")
         self.top.top.bind("<Escape>", self.close)
         #
         self.bframe = bframe = Frame(top.w)
@@ -198,6 +197,9 @@ class Debugger(Component):
         self.status.configure(text="")
         self.error.configure(text="", background=self.errorbg)
         self.frame = None
+
+    def short_title(self):
+        return 'Debug Control'
 
     def sync_source_line(self):
         frame = self.frame

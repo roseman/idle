@@ -4,8 +4,13 @@ Object that holds a Component, e.g. editor
 For now, a toplevel, but later a frame too...
 """
 
+import platform
 from tkinter import *
 from idlelib.statusbar import Statusbar
+
+
+_py_version = ' (%s)' % platform.python_version()
+
 
 class Container(object):
     def __init__(self, flist):
@@ -16,6 +21,7 @@ class Container(object):
         self.statusbar = None
         if self.flist:
             self.flist.add_container(self)
+        self.w.after_idle(self.title_changed)
 
     def make_widget(self):
         t = Toplevel(self.flist.root)
@@ -35,10 +41,24 @@ class Container(object):
             except Exception:       # if file needs saving, user may abort
                 pass
 
-    def set_title(self, title, short_title=None):
-        self.w.wm_title(title)
-        if short_title is not None:
-            self.w.wm_iconname(short_title)
+    def title_changed(self):
+        if self.component is not None:
+            short = self.component.short_title()
+            long = self.component.long_title()
+            if short and long:
+                title = short + " - " + long + _py_version
+            elif short:
+                title = short
+            elif long:
+                title = long
+            else:
+                title = "Untitled"
+            icon = short or long or title
+            if not self.component.get_saved():
+                title = "*%s*" % title
+                icon = "*%s" % icon
+            self.w.wm_title(title)
+            self.w.wm_iconname(icon)
 
     def get_title(self):
         return self.w.wm_title()
