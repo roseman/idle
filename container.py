@@ -105,6 +105,7 @@ class TabbedContainer(Container, UITabsObserver):
         self.containers = {}    # map tab to container
         self.active = None
         self.w.bind('<Activate>', lambda e: self._activate())
+        self.w.bind('<FocusIn>', lambda e: self._activate())
 
     def add_component(self, component):
         id = self.tabs.add(title='Shell***')
