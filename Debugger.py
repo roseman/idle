@@ -68,7 +68,7 @@ class Debugger(Component):
         finally:
             self.interacting = 0
 
-    def close(self, event=None):
+    def close(self, event=None, without_save=False):
         if self.interacting:
             self.top.top.bell()
             return

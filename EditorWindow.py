@@ -965,11 +965,9 @@ class EditorWindow(Component):
                 self.top.move_to_front(self)
             return self.io.maybesave()
 
-    def close(self):
-        reply = self.maybesave()
-        if str(reply) != "cancel":
+    def close(self, without_save=False):
+        if without_save or str(self.maybesave()) != 'cancel':
             self._close()
-        return reply
 
     def _close(self):
         if self.io.filename:

@@ -9,11 +9,11 @@ class Component(object):
         self.top = None     # component should set this to its Container
         self.type = 'component'
 
-    def close(self):
+    def close(self, without_save=False):
         "Called e.g. when close button on window containing us is clicked"
         self.flist.unregister_maybe_terminate(self)
         self.flist = None
-        # TODO - container will destroy all widgets after this returns
+        # NOTE: container will destroy all widgets after this returns
 
     def wakeup(self):
         "Bring component to front and set focus"
@@ -24,13 +24,18 @@ class Component(object):
         #       one component, this is a better approach.
 
     def short_title(self):
-        return None
+        return 'component'
 
     def long_title(self):
         return None
 
     def get_saved(self):
         return True     # by default, no changes to component need saving
+
+    def maybesave(self):
+        return "yes"    # needed if get_saved ever returns False; should
+                        # prompt to save, save if selected, and return one of
+                        # 'yes', 'no', or 'cancel'
 
     # Below here are various notifications that subclasses may choose
     # to act on if needed

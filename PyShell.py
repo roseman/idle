@@ -994,8 +994,8 @@ class PyShell(OutputWindow):
         self.canceled = 0
         self.showprompt()
 
-    def close(self):
-        "Extend EditorWindow.close()"
+    def maybesave(self):
+        "In addition to saving, possibly abort if program still running"
         if self.executing:
             response = tkMessageBox.askokcancel(
                 "Kill?",
@@ -1004,10 +1004,10 @@ class PyShell(OutputWindow):
                 parent=self.text)
             if response is False:
                 return "cancel"
-        self.stop_readline()
-        self.canceled = True
-        self.closing = True
-        return EditorWindow.close(self)
+            self.stop_readline()
+            self.cancelled = True
+            self.closing = True
+        return EditorWindow.maybesave(self)
 
     def _close(self):
         "Extend EditorWindow._close(), shut down debugger and execution server"
