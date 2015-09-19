@@ -44,9 +44,9 @@ class FileList:
                 edit._close()
                 return None
 
-    def new_container(self):
+    def new_container(self, own_window=False):
         "Return a new Container for a component"
-        if self.using_tabs:
+        if self.using_tabs and not own_window:
             if self.tab_container is None:
                 self.tab_container = TabbedContainer(self)
             return ProxyContainer(self.tab_container)

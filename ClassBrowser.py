@@ -49,7 +49,7 @@ class ClassBrowser(Component):
         pyclbr._modules.clear()
         # create top
         # NOTE: later we will be passed in container, rather than creating it
-        self.top = top = flist.new_container()
+        self.top = top = flist.new_container(own_window=True)
         self.top.add_component(self)
         top.top.bind("<Escape>", self.close)
         if self._htest: # place dialog below parent if running htest

@@ -85,7 +85,7 @@ class Debugger(Component):
         self.flist = pyshell.flist
         self.root = root = pyshell.root
         # NOTE: later we will be passed in container, rather than creating it
-        self.top = top = self.flist.new_container()
+        self.top = top = self.flist.new_container(own_window=True)
         self.top.add_component(self)
         self.top.top.bind("<Escape>", self.close)
         #
