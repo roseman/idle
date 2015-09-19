@@ -102,7 +102,8 @@ class EditorWindow(Component):
         #       create one.
         self.top = top = flist.new_container()
         self.top.component = self
-        top.set_menubar(self.menubar)
+        self.top.set_menubar(self.menubar)
+        self.top.setup_statusbar()
         if flist:
             self.tkinter_vars = flist.vars
         else:
@@ -189,7 +190,11 @@ class EditorWindow(Component):
             text.bind("<<open-path-browser>>", self.open_path_browser)
             text.bind("<<open-turtle-demo>>", self.open_turtle_demo)
 
-        self.set_status_bar()
+        text.bind("<<set-line-and-column>>", self.set_line_and_column)
+        text.event_add("<<set-line-and-column>>",
+                            "<KeyRelease>", "<ButtonRelease>")
+
+
         vbar['command'] = text.yview
         vbar.pack(side=RIGHT, fill=Y)
         text['yscrollcommand'] = vbar.set
@@ -371,26 +376,8 @@ class EditorWindow(Component):
         self.text.see("insert")
         return "break"
 
-    def set_status_bar(self):
-        self.status_bar = self.MultiStatusBar(self.top.w)
-        sep = Frame(self.top.w, height=1, borderwidth=1, background='grey75')
-        if sys.platform == "darwin":
-            # Insert some padding to avoid obscuring some of the statusbar
-            # by the resize widget.
-            self.status_bar.set_label('_padding1', '    ', side=RIGHT)
-        self.status_bar.set_label('column', 'Col: ?', side=RIGHT)
-        self.status_bar.set_label('line', 'Ln: ?', side=RIGHT)
-        self.status_bar.pack(side=BOTTOM, fill=X)
-        sep.pack(side=BOTTOM, fill=X)
-        self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
-        self.text.event_add("<<set-line-and-column>>",
-                            "<KeyRelease>", "<ButtonRelease>")
-        self.text.after_idle(self.set_line_and_column)
-
     def set_line_and_column(self, event=None):
-        line, column = self.text.index(INSERT).split('.')
-        self.status_bar.set_label('column', 'Col: %s' % column)
-        self.status_bar.set_label('line', 'Ln: %s' % line)
+        self.top.ping_statusbar()
 
     menu_specs = [
         ("file", "_File"),

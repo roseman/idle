@@ -4,15 +4,16 @@ Object that holds a Component, e.g. editor
 For now, a toplevel, but later a frame too...
 """
 
-from tkinter import Toplevel
+from tkinter import *
+from idlelib.statusbar import Statusbar
 
 class Container(object):
     def __init__(self, flist):
         self.flist = flist
         self.component = None               # component should set this
-        self.focus_widget = None
         self.w = self.make_widget()         # w: widget component packs into
         self.top = self.w.winfo_toplevel()  # top: toplevel for this container
+        self.statusbar = None
         if self.flist:
             self.flist.add_container(self)
 
@@ -44,6 +45,18 @@ class Container(object):
 
     def set_menubar(self, menu):
         self.w['menu'] = menu
+
+    def setup_statusbar(self):
+        self.create_statusbar()
+        self.statusbar.observe(self.component)
+
+    def create_statusbar(self):
+        self.statusbar = Statusbar(self.w)
+        self.statusbar.pack(side=BOTTOM, fill=X)
+
+    def ping_statusbar(self):   # TODO later - 'metadata_changed'?
+        if self.statusbar is not None:
+            self.statusbar.update()
 
     def move_to_front(self, component): 
         "Adjust the container so the given component is brought forward."
