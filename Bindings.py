@@ -22,6 +22,7 @@ from idlelib.configHandler import idleConf
 menudefs = [
  # underscore prefixes character to underscore
  ('file', [
+   ('New Window', '<<new-top-window>>'),
    ('_New File', '<<open-new-window>>'),
    ('_Open...', '<<open-window-from-file>>'),
    ('Open _Module...', '<<open-module>>'),

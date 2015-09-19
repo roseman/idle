@@ -191,6 +191,7 @@ class EditorWindow(Component):
 
         if flist:
             flist.register_editor_window(self, key)
+            text.bind("<<new-top-window>>", self.flist.new_topwindow)
             text.bind("<<open-new-window>>", self.new_callback)
             text.bind("<<close-all-windows>>", self.flist.close_all_callback)
             text.bind("<<open-class-browser>>", self.open_class_browser)

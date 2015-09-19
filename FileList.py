@@ -66,6 +66,10 @@ class FileList:
     def new(self, filename=None):
         return self.EditorWindow(self, filename)
 
+    def new_topwindow(self, event=None):
+        self.tab_container = None
+        return self.new()
+
     def close_all_callback(self, *args, **kwds):
         for edit in list(self.inversedict):
             reply = edit.close()
@@ -129,6 +133,8 @@ class FileList:
         
     # note: replacement for WindowList.delete
     def delete_container(self, container):
+        if self.tab_container == container:
+            self.tab_container = None
         try:
             del self.containers[str(container)]
         except KeyError:

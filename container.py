@@ -104,6 +104,7 @@ class TabbedContainer(Container, UITabsObserver):
         Container.__init__(self, flist)
         self.containers = {}    # map tab to container
         self.active = None
+        self.w.bind('<Activate>', lambda e: self._activate())
 
     def add_component(self, component):
         id = self.tabs.add(title='Shell***')
@@ -136,6 +137,10 @@ class TabbedContainer(Container, UITabsObserver):
             self.tabs.remove(tabid)
             if len(self.containers) == 0:
                 self._close()
+
+    def _activate(self):
+        # Called when we get moved to the front
+        self.flist.tab_container = self
 
     def _close(self):
         "Close button on window - try to close all tabs"
