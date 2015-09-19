@@ -15,19 +15,22 @@ _py_version = ' (%s)' % platform.python_version()
 class Container(object):
     def __init__(self, flist):
         self.flist = flist
-        self.component = None               # component should set this
+        self.component = None               # caller sets via add_component
         self.w = self.make_widget()         # w: widget component packs into
         self.top = self.w.winfo_toplevel()  # top: toplevel for this container
         self.statusbar = None
         if self.flist:
             self.flist.add_container(self)
-        self.w.after_idle(self.title_changed)
 
     def make_widget(self):
         t = Toplevel(self.flist.root)
         t.protocol('WM_DELETE_WINDOW', self._close)
         t.bind("<<close-window>>", lambda e: self._close())
         return t
+
+    def add_component(self, component):
+        self.component = component
+        self.w.after_idle(self.title_changed)
 
     def _close(self):
         if self.component is not None:

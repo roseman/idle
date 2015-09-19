@@ -99,7 +99,7 @@ class EditorWindow(Component):
         #       the Component to use, rather than having the Component
         #       create one.
         self.top = top = flist.new_container()
-        self.top.component = self
+        self.top.add_component(self)
         self.top.set_menubar(self.menubar)
         self.top.setup_statusbar()
         if flist:
