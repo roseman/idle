@@ -63,6 +63,7 @@ class Container(object):
                 icon = "*%s" % icon
             self.w.wm_title(title)
             self.w.wm_iconname(icon)
+            self.flist.filenames_changed()  # to update window list
 
     def get_title(self):
         return self.w.wm_title()
@@ -130,6 +131,7 @@ class TabbedContainer(Container, UITabsObserver):
             if container == self.active:
                 self.tab_deselected(self.tabs, tabid)
                 self.active = None
+                self.component = None
             del(self.containers[tabid])
             self.tabs.remove(tabid)
             if len(self.containers) == 0:
@@ -194,6 +196,7 @@ class TabbedContainer(Container, UITabsObserver):
         if container == self.active:
             self.w.wm_title(container.title if container.title else container.short_title)
             self.w.wm_iconname(container.short_title)
+            self.flist.filenames_changed()  # to update window list
 
     def tab_selected(self, tabs, tabid):
         self.w.after_idle(lambda: self._tab_selected(tabid))
@@ -201,6 +204,7 @@ class TabbedContainer(Container, UITabsObserver):
     def _tab_selected(self, tabid):
         if self.active != self.containers[tabid]:
             self.active = self.containers[tabid]
+            self.component = self.active.component
             self.active.w.pack(side='top', fill='both')
             self.w['menu'] = self.active.menubar
             self.statusbar.observe(self.active.component)
@@ -212,6 +216,7 @@ class ProxyContainer(Container):
     def __init__(self, top_container):
         self.top_container = top_container
         Container.__init__(self, top_container.flist)
+        self.top_container.flist.delete_container(self)
         self.short_title = ''
         self.title = ''
         self.saved = ''
