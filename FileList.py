@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 import tkinter.messagebox as tkMessageBox
+from idlelib.container import Container
 
 
 class FileList:
@@ -40,6 +41,10 @@ class FileList:
             else:
                 edit._close()
                 return None
+
+    def new_container(self):
+        "Return a new Container for a component"
+        return Container(self)
 
     def register_editor_window(self, win, key=None):
         self.inversedict[win] = key

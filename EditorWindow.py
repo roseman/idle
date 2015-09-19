@@ -25,7 +25,6 @@ from idlelib import uipreferences
 from idlelib import querydialog
 from idlelib import help
 from idlelib.component import Component
-from idlelib.container import Container
 
 
 # The default tab setting for a Text widget, in average-width characters.
@@ -101,7 +100,7 @@ class EditorWindow(Component):
         #       future, as we will soon be passing in a Container for
         #       the Component to use, rather than having the Component
         #       create one.
-        self.top = top = Container(flist)
+        self.top = top = flist.new_container()
         self.top.component = self
         top.set_menubar(self.menubar)
         if flist:

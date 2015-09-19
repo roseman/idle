@@ -4,7 +4,6 @@ from tkinter import *
 from idlelib.ScrolledList import ScrolledList
 from idlelib import macosxSupport
 from idlelib.component import Component
-from idlelib.container import Container
 
 
 class Idb(bdb.Bdb):
@@ -86,7 +85,7 @@ class Debugger(Component):
         self.flist = pyshell.flist
         self.root = root = pyshell.root
         # NOTE: later we will be passed in container, rather than creating it
-        self.top = top = Container(self.flist)
+        self.top = top = self.flist.new_container()
         self.top.component = self
         self.top.set_title("Debug Control", "Debug")
         self.top.top.bind("<Escape>", self.close)
