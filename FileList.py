@@ -1,7 +1,7 @@
 import os
 from tkinter import *
 import tkinter.messagebox as tkMessageBox
-from idlelib.container import Container
+from idlelib.container import Container, TabbedContainer, ProxyContainer
 
 
 class FileList:
@@ -14,6 +14,8 @@ class FileList:
         self.dict = {}
         self.inversedict = {}
         self.containers = {}
+        self.tab_container = None
+        self.using_tabs = True
         self.vars = {} # For EditorWindow.getrawvar (shared Tcl variables)
 
     def open(self, filename, action=None):
@@ -44,7 +46,12 @@ class FileList:
 
     def new_container(self):
         "Return a new Container for a component"
-        return Container(self)
+        if self.using_tabs:
+            if self.tab_container is None:
+                self.tab_container = TabbedContainer(self)
+            return ProxyContainer(self.tab_container)
+        else:
+            return Container(self)
 
     def register_editor_window(self, win, key=None):
         self.inversedict[win] = key
@@ -148,7 +155,9 @@ class FileList:
             list.append((title, key, container))
         list.sort()
         for title, key, container in list:
-            menu.add_command(label=title, command=container.component.wakeup)
+            if container.component is not None:
+                menu.add_command(label=title,
+                                 command=container.component.wakeup)
 
     def configuration_will_change(self):
         "Callback from configuration dialog before settings are applied."
