@@ -176,7 +176,7 @@ def overrideRootMenu(root, flist):
 
     def help_dialog(event=None):
         from idlelib import help
-        help.show(root)
+        help.show_idlehelp(root)
 
     root.bind('<<about-idle>>', about_dialog)
     root.bind('<<open-config-dialog>>', config_dialog)

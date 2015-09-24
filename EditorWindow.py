@@ -479,7 +479,7 @@ class EditorWindow(Component):
             parent = self.root
         else:
             parent = self.top.top
-        help.show(parent)
+        help.show_idlehelp(parent)
 
     def python_docs(self, event=None):
         if sys.platform[:3] == 'win':
