@@ -6,6 +6,7 @@ from tkinter import StringVar, BooleanVar, Checkbutton  # for GrepDialog
 from tkinter import Tk, Text, Button, SEL, END  # for htest
 from idlelib import SearchEngine
 from idlelib.SearchDialogBase import SearchDialogBase
+from idlelib import ui
 # Importing OutputWindow fails due to import loop
 # EditorWindow -> GrepDialop -> OutputWindow -> EditorWindow
 
@@ -49,11 +50,12 @@ class GrepDialog(SearchDialogBase):
     def create_other_buttons(self):
         f = self.make_frame()[0]
 
-        btn = Checkbutton(f, anchor="w",
-                variable=self.recvar,
-                text="Recurse down subdirectories")
+        btn = ui.Checkbutton(f, variable=self.recvar,
+                             text="Recurse down subdirectories")
         btn.pack(side="top", fill="both")
-        btn.select()
+        self.recvar.set(True)
+        if not ui.using_ttk:
+            btn.select()
 
     def create_command_buttons(self):
         SearchDialogBase.create_command_buttons(self)

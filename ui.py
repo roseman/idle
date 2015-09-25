@@ -32,6 +32,9 @@ Label = tkinter.Label
 Scrollbar = tkinter.Scrollbar
 Spinbox = tkinter.Spinbox
 PanedWindow = tkinter.PanedWindow
+Entry = tkinter.Entry
+Checkbutton = tkinter.Checkbutton
+Radiobutton = tkinter.Radiobutton
 
 
 # Initialize our common variables; this needs to be called before the
@@ -41,7 +44,7 @@ PanedWindow = tkinter.PanedWindow
 def init(root_, allow_ttk=True):
     global _initialized, root, using_ttk, windowing_system, need_sizegrip,\
            clickable_cursor, Button, Frame, Label, Scrollbar, PanedWindow,\
-           Spinbox
+           Spinbox, Entry, Checkbutton, Radiobutton
     
     if _initialized:
         return
@@ -63,6 +66,9 @@ def init(root_, allow_ttk=True):
         Label = ttk.Label
         Scrollbar = ttk.Scrollbar
         PanedWindow = ttk.PanedWindow
+        Entry = ttk.Entry
+        Checkbutton = ttk.Checkbutton
+        Radiobutton = ttk.Radiobutton
         Spinbox = _Spinbox  # see below
     if windowing_system == 'aqua':
         clickable_cursor = 'pointinghand'
