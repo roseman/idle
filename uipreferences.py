@@ -461,19 +461,35 @@ class ThemesPane(PreferencesPane):
 
     def change_color(self, foreground=True):
         "Called when a color well is clicked on."
-        if self.theme_v.get() in self.default_themes:
+        theme = self.theme_v.get()
+        cur_elt = self.element_v.get()
+        if theme in self.default_themes:
             self.newtheme(tried_modifying_builtin=True)
         else:
             title = 'Foreground' if foreground else 'Background'
-            title += ' for %s' % self.element_v.get()
-            color = self.current_color(self.theme_v.get(),
-                        self.element_v.get(), 'fg' if foreground else 'bg')
+            title += ' for %s' % cur_elt
+            color = self.current_color(theme, cur_elt,
+                                       'fg' if foreground else 'bg')
             newcolor = colorchooser.askcolor(parent=self, title=title,
                                              initialcolor=color)[1]
             if newcolor is not None:
+                tochange = [cur_elt]
+                if not foreground:
+                    # if changing a common background, offer to change all
+                    for e in self.elements:
+                        if color == self.current_color(theme, e, 'bg') and\
+                                            e != cur_elt:
+                            tochange.append(e)
+                    if len(tochange) > 3:   # nothing significant about 3
+                        if not messagebox.askyesno('Apply to Others',
+                                    "Apply this change to the other elements "
+                                    " with the same background color?",
+                                    parent=self):
+                            tochange = [cur_elt]
                 fgbg = '-foreground' if foreground else '-background'
-                self.preference_changed('highlight', self.theme_v.get(),
-                        self.elements[self.element_v.get()][0]+fgbg, newcolor)
+                for e in tochange:
+                    self.preference_changed('highlight', theme,
+                        self.elements[e][0]+fgbg, newcolor)
                 self.update_colors()
 
     def update_colors(self):
