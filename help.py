@@ -28,6 +28,7 @@ from html.parser import HTMLParser
 from os.path import abspath, dirname, isdir, isfile, join
 from tkinter import Tk, Toplevel, Frame, Text, Scrollbar, Menu, Menubutton
 from tkinter import font as tkfont
+from idlelib.configHandler import idleConf
 
 use_ttk = False # until available to import
 if use_ttk:
@@ -48,17 +49,17 @@ class HelpParser(HTMLParser):
     def __init__(self, text):
         HTMLParser.__init__(self, convert_charrefs=True)
         self.text = text         # text widget we're rendering into
-        self.tags = ''           # current text tags to apply
+        self.tags = ''           # current block level text tags to apply
+        self.chartags = ''       # current character level text tags
         self.show = False        # used so we exclude page navigation
         self.hdrlink = False     # used so we don't show header links
         self.level = 0           # indentation level
         self.pre = False         # displaying preformatted text
-        self.hprefix = ''        # strip e.g. '25.5' from headings
+        self.hprefix = ''        # prefix such as '25.5' to strip from headings
         self.nested_dl = False   # if we're in a nested <dl>
         self.simplelist = False  # simple list (no double spacing)
-        self.tocid = 1           # id for table of contents entries
-        self.contents = []       # map toc ids to section titles
-        self.data = ''           # to record data within header tags for toc
+        self.toc = []            # pair headers with text indexes for toc
+        self.header = ''         # text within header tags for toc
 
     def indent(self, amt=1):
         self.level += amt
@@ -78,11 +79,11 @@ class HelpParser(HTMLParser):
         elif tag == 'p' and class_ != 'first':
             s = '\n\n'
         elif tag == 'span' and class_ == 'pre':
-            self.tags = 'pre'
+            self.chartags = 'pre'
         elif tag == 'span' and class_ == 'versionmodified':
-            self.tags = 'em'
+            self.chartags = 'em'
         elif tag == 'em':
-            self.tags = 'em'
+            self.chartags = 'em'
         elif tag in ['ul', 'ol']:
             if class_.find('simple') != -1:
                 s = '\n'
@@ -109,27 +110,23 @@ class HelpParser(HTMLParser):
         elif tag == 'a' and class_ == 'headerlink':
             self.hdrlink = True
         elif tag == 'h1':
-            self.text.mark_set('toc'+str(self.tocid),
-                            self.text.index('end-1line'))
             self.tags = tag
         elif tag in ['h2', 'h3']:
             if self.show:
-                self.data = ''
-                self.text.mark_set('toc'+str(self.tocid),
-                                self.text.index('end-1line'))
+                self.header = ''
                 self.text.insert('end', '\n\n')
             self.tags = tag
         if self.show:
-            self.text.insert('end', s, self.tags)
+            self.text.insert('end', s, (self.tags, self.chartags))
 
     def handle_endtag(self, tag):
         "Handle endtags in help.html."
-        if tag in ['h1', 'h2', 'h3', 'span', 'em']:
+        if tag in ['h1', 'h2', 'h3']:
             self.indent(0)  # clear tag, reset indent
-            if self.show and tag in ['h1', 'h2', 'h3']:
-                title = self.data
-                self.contents.append(('toc'+str(self.tocid), title))
-                self.tocid += 1
+            if self.show:
+                self.toc.append((self.header, self.text.index('insert')))
+        elif tag in ['span', 'em']:
+            self.chartags = ''
         elif tag == 'a':
             self.hdrlink = False
         elif tag == 'pre':
@@ -147,16 +144,19 @@ class HelpParser(HTMLParser):
             if self.tags in ['h1', 'h2', 'h3'] and self.hprefix != '':
                 if d[0:len(self.hprefix)] == self.hprefix:
                     d = d[len(self.hprefix):].strip()
-                self.data += d
-            self.text.insert('end', d, self.tags)
+                self.header += d
+            self.text.insert('end', d, (self.tags, self.chartags))
 
 
 class HelpText(Text):
     "Display help.html."
     def __init__(self, parent, filename):
         "Configure tags and feed file to parser."
+        uwide = idleConf.GetOption('main', 'EditorWindow', 'width', type='int')
+        uhigh = idleConf.GetOption('main', 'EditorWindow', 'height', type='int')
+        uhigh = 3 * uhigh // 4  # lines average 4/3 of editor line height
         Text.__init__(self, parent, wrap='word', highlightthickness=0,
-                      padx=5, borderwidth=0)
+                      padx=5, borderwidth=0, width=uwide, height=uhigh)
 
         normalfont = self.findfont(['TkDefaultFont', 'arial', 'helvetica'])
         fixedfont = self.findfont(['TkFixedFont', 'monaco', 'courier'])
@@ -165,7 +165,7 @@ class HelpText(Text):
         self.tag_configure('h1', font=(normalfont, 20, 'bold'))
         self.tag_configure('h2', font=(normalfont, 18, 'bold'))
         self.tag_configure('h3', font=(normalfont, 15, 'bold'))
-        self.tag_configure('pre', font=(fixedfont, 12))
+        self.tag_configure('pre', font=(fixedfont, 12), background='#f6f6ff')
         self.tag_configure('preblock', font=(fixedfont, 10), lmargin1=25,
                 borderwidth=1, relief='solid', background='#eeffcc')
         self.tag_configure('l1', lmargin1=25, lmargin2=25)
@@ -198,19 +198,18 @@ class HelpFrame(Frame):
         self['background'] = text['background']
         scroll = Scrollbar(self, command=text.yview)
         text['yscrollcommand'] = scroll.set
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)  # text
+        self.toc_menu(text).grid(column=0, row=0, sticky='nw')
         text.grid(column=1, row=0, sticky='nsew')
         scroll.grid(column=2, row=0, sticky='ns')
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        toc = self.contents_widget(text)
-        toc.grid(column=0, row=0, sticky='nw')
 
-    def contents_widget(self, text):
-        "Create table of contents."
+    def toc_menu(self, text):
+        "Create table of contents as drop-down menu."
         toc = Menubutton(self, text='TOC')
         drop = Menu(toc, tearoff=False)
-        for tag, lbl in text.parser.contents:
-            drop.add_command(label=lbl, command=lambda mark=tag:text.see(mark))
+        for lbl, dex in text.parser.toc:
+            drop.add_command(label=lbl, command=lambda dex=dex:text.yview(dex))
         toc['menu'] = drop
         return toc
 

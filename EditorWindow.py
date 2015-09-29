@@ -727,6 +727,9 @@ class EditorWindow(Component):
             selectforeground=select_colors['foreground'],
             selectbackground=select_colors['background'],
             )
+        if TkVersion >= 8.5:
+            self.text.config(
+                inactiveselectbackground=select_colors['background'])
 
     IDENTCHARS = string.ascii_letters + string.digits + "_"
 
