@@ -601,10 +601,11 @@ class ThemesPane(PreferencesPane):
             'Selected Text':('hilite', '06'),
             'Found Text':('hit', '07'),
             'Cursor':('cursor', '08'),
-            'Error Text':('error', '09'),
-            'Shell Normal Text':('console', '10'),
-            'Shell Stdout Text':('stdout', '11'),
-            'Shell Stderr Text':('stderr', '12'),
+            'Breakpoint':('break', '09'),
+            'Error Text':('error', '10'),
+            'Shell Normal Text':('console', '11'),
+            'Shell Stdout Text':('stdout', '12'),
+            'Shell Stderr Text':('stderr', '13'),
             }
         self.sample_text_tags = (
             ('#you can click here', 'comment'), ('\n', 'normal'),
@@ -618,7 +619,8 @@ class ThemesPane(PreferencesPane):
             ('list', 'builtin'), ('(', 'normal'),
             ('None', 'keyword'), (')\n\n', 'normal'),
             (' error ', 'error'), (' ', 'normal'),
-            ('cursor |', 'cursor'), ('\n ', 'normal'),
+            ('cursor |', 'cursor'), (' ', 'normal'),
+            ('breakpoint', 'break'), ('\n ', 'normal'),
             ('shell', 'console'), (' ', 'normal'),
             ('stdout', 'stdout'), (' ', 'normal'),
             ('stderr', 'stderr'), ('\n', 'normal'))
