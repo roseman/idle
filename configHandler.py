@@ -158,6 +158,7 @@ class IdleConf:
         self.cfg = {}  # TODO use to select userCfg vs defaultCfg
         self.CreateConfigHandlers()
         self.LoadCfgFiles()
+        self.AdjustPlatformDefaults()
 
 
     def CreateConfigHandlers(self):
@@ -706,6 +707,10 @@ class IdleConf:
         for key in self.defaultCfg:
             self.defaultCfg[key].Load()
             self.userCfg[key].Load() #same keys
+
+    def AdjustPlatformDefaults(self):
+        if sys.platform == 'darwin':
+            self.defaultCfg['main'].set('Keys', 'name', 'IDLE Classic OSX')
 
     def SaveUserCfgFiles(self):
         "Write all loaded user configuration files to disk."
