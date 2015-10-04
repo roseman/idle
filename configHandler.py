@@ -271,13 +271,14 @@ class IdleConf:
         """
         if not (configType in self.config_types):
             raise InvalidConfigType('Invalid configType specified')
-        if configSet == 'user':
-            cfgParser = self.userCfg[configType]
-        elif configSet == 'default':
-            cfgParser=self.defaultCfg[configType]
-        else:
+        if not (configSet in ['user', 'default']):
             raise InvalidConfigSet('Invalid configSet specified')
-        return cfgParser.sections()
+        defaultsections = self.defaultCfg[configType].sections()
+        if configSet == 'default':
+            return defaultsections
+        else:
+            usersections = self.userCfg[configType].sections()
+            return [x for x in usersections if x not in defaultsections]
 
     def GetHighlight(self, theme, element, fgBg=None):
         """Return individual theme element highlight color(s).

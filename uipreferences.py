@@ -120,6 +120,18 @@ class PreferencesChanger(object):
             if idleConf.defaultCfg[type_].Get(section, item) == value:
                 # the setting equals a default, remove it from user cfg
                 return idleConf.userCfg[type_].RemoveOption(section, item)
+        # handle any special cases and backwards compatiblity concerns
+        if type_ == 'main' and section == 'Theme' and item == 'name':
+            # For backwards compatibility, we write 'newer' themes to the
+            # user config file so they can be used in older versions of IDLE.
+            # These are ignored by newer versions which have the theme name
+            # in their default list. See Issue #25313
+            if value in idleConf.defaultCfg['highlight'].sections() \
+                    and value not in ['IDLE Classic', 'IDLE New'] \
+                    and value not in idleConf.userCfg['highlight'].sections():
+                for elt,val in idleConf.defaultCfg['highlight'].items(value):
+                    idleConf.userCfg['highlight'].SetOption(value, elt, val)
+                idleConf.userCfg['highlight'].Save()
         # if we got here set the option
         return idleConf.userCfg[type_].SetOption(section, item, value)
 
