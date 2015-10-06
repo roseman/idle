@@ -57,7 +57,7 @@ class ClassBrowser(Component):
                 (flist.root.winfo_rootx(), flist.root.winfo_rooty() + 200))
         top.top.focus_set()
         # create scrolled canvas
-        theme = idleConf.GetOption('main','Theme','name')
+        theme = idleConf.CurrentTheme()
         background = idleConf.GetHighlight(theme, 'normal')['background']
         sc = ScrolledCanvas(top.w, bg=background, highlightthickness=0, takefocus=1)
         sc.frame.pack(expand=1, fill="both")

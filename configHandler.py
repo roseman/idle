@@ -375,7 +375,11 @@ class IdleConf:
 
     def CurrentTheme(self):
         "Return the name of the currently active theme."
-        return self.GetOption('main', 'Theme', 'name', default='')
+        theme = self.GetOption('main', 'Theme', 'name', default='')
+        if self.defaultCfg['highlight'].has_section(theme) or \
+                        self.userCfg['highlight'].has_section(theme):
+            return theme
+        return "IDLE Classic"
 
     def CurrentKeys(self):
         "Return the name of the currently active key set."
