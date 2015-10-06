@@ -380,6 +380,8 @@ class ThemesPane(PreferencesPane):
 
         # list of themes, and current selection
         self.theme_v = self.register_prefvar('main', 'Theme', 'name')
+        # CurrentTheme() handles case where current theme no longer exists
+        self.theme_v.set(idleConf.CurrentTheme())
         self.themes = Listbox(self, exportselection=FALSE, activestyle='none')
         self.default_themes = idleConf.GetSectionList('default', 'highlight')
         self.themes.bind('<<ListboxSelect>>', self.theme_changed)
